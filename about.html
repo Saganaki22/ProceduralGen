@@ -143,10 +143,12 @@
             overflow: hidden;
             box-shadow: var(--shadow);
             transition: transform 0.3s ease;
+            cursor: pointer;
         }
 
         .algorithm-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2);
         }
 
         .algorithm-image {
@@ -180,6 +182,24 @@
             font-style: italic;
             color: var(--mid);
             opacity: 0.8;
+        }
+
+        .learn-more-btn {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 12px;
+            background: rgba(99, 102, 241, 0.2);
+            color: var(--light);
+            border-radius: var(--radius);
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+        }
+        
+        .learn-more-btn:hover {
+            background: rgba(99, 102, 241, 0.4);
+            transform: translateY(-2px);
         }
 
         footer {
@@ -504,5 +524,55 @@
             <p>Procedural Art Generator &copy; 2025 | Created with ❤️ for generative art</p>
         </footer>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const wikiLinks = {
+                'Particle System': 'https://en.wikipedia.org/wiki/Particle_system',
+                'Recursive Patterns (Fractals)': 'https://en.wikipedia.org/wiki/Fractal',
+                'Flow Field': 'https://en.wikipedia.org/wiki/Vector_field',
+                'Voronoi Diagram': 'https://en.wikipedia.org/wiki/Voronoi_diagram',
+                'Wave Patterns': 'https://en.wikipedia.org/wiki/Wave',
+                'Truchet Tiles': 'https://en.wikipedia.org/wiki/Truchet_tiles',
+                'Perlin Noise': 'https://en.wikipedia.org/wiki/Perlin_noise',
+                'Fractal Brownian Motion (fBm)': 'https://en.wikipedia.org/wiki/Fractional_Brownian_motion',
+                'L-System': 'https://en.wikipedia.org/wiki/L-system',
+                'Reaction-Diffusion': 'https://en.wikipedia.org/wiki/Reaction%E2%80%93diffusion_system',
+                'Penrose Tiling': 'https://en.wikipedia.org/wiki/Penrose_tiling',
+                'Lorenz Attractor': 'https://en.wikipedia.org/wiki/Lorenz_system'
+            };
+            
+            const cards = document.querySelectorAll('.algorithm-card');
+            
+            cards.forEach(card => {
+                const titleElement = card.querySelector('h3');
+                if (!titleElement) return;
+                
+                const title = titleElement.textContent.trim();
+                const wikiUrl = wikiLinks[title];
+                
+                if (wikiUrl) {
+                    const contentDiv = card.querySelector('.algorithm-content');
+                    const btnContainer = document.createElement('div');
+                    btnContainer.style.textAlign = 'right';
+                    
+                    const learnMoreBtn = document.createElement('a');
+                    learnMoreBtn.href = wikiUrl;
+                    learnMoreBtn.target = '_blank';
+                    learnMoreBtn.className = 'learn-more-btn';
+                    learnMoreBtn.textContent = 'Learn more on Wikipedia';
+                    
+                    btnContainer.appendChild(learnMoreBtn);
+                    contentDiv.appendChild(btnContainer);
+                    
+                    card.addEventListener('click', function(e) {
+                        if (!e.target.closest('.learn-more-btn')) {
+                            window.open(wikiUrl, '_blank');
+                        }
+                    });
+                }
+            });
+        });
+    </script>
 </body>
 </html>
