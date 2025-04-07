@@ -1,0 +1,3886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procedural Art Generator</title>
+    <!-- Meta Description -->
+    <meta name="description" content="Create stunning algorithmic artwork through parameter manipulation and explore the beauty of generative art. A creative tool for making procedural visuals.">
+    <!-- Favicon Links -->
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="favicon/webmanifest.json">
+    <link rel="shortcut icon" href="favicon/favicon.ico">
+    <!-- Open Graph Meta Tags (for social sharing) -->
+    <meta property="og:title" content="Procedural Art Generator">
+    <meta property="og:description" content="Create stunning algorithmic artwork through parameter manipulation and explore the beauty of generative art. A creative tool for making procedural visuals.">
+    <meta property="og:image" content="https://i.ibb.co/F41ngw3F/progen.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://drbaph.is-a.dev/ProceduralGen/">
+    <!-- Twitter Card (for better previews on Twitter) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Procedural Art Generator">
+    <meta name="twitter:description" content="Create stunning algorithmic artwork through parameter manipulation and explore the beauty of generative art. A creative tool for making procedural visuals.">
+    <meta name="twitter:image" content="https://i.ibb.co/F41ngw3F/progen.jpg">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #8b5cf6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --mid: #94a3b8;
+            --success: #22c55e;
+            --warning: #eab308;
+            --radius: 12px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden; /* Prevent body scroll, manage scrolling within containers */
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .gradient-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1600px; /* Increased max-width slightly */
+            margin: 0 auto;
+            padding: 15px; /* Slightly reduced padding */
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* Ensure container takes full height */
+        }
+
+        header {
+            text-align: center;
+            padding: 15px 0 20px; /* Reduced padding */
+            flex-shrink: 0; /* Prevent header from shrinking */
+            position: relative; /* For absolute positioning of nav buttons */
+        }
+
+        header h1 {
+            font-size: 2.5rem; /* Adjusted size */
+            margin-bottom: 0.4rem;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+        }
+
+        header p {
+            color: var(--mid);
+            font-size: 1.0rem; /* Adjusted size */
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .nav-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-button {
+            padding: 8px 15px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--light);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+        
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .nav-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .main-content-area {
+             flex-grow: 1;
+             display: flex;
+             flex-direction: column;
+             overflow: hidden; /* Prevent this area from causing body scroll */
+             min-height: 0; /* Important for flex children overflow */
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr minmax(320px, 400px); /* Adjusted controls width */
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-grow: 1; /* Allow grid to fill space */
+            overflow: hidden; /* Prevent grid from overflowing */
+            min-height: 0; /* Important for flex children overflow */
+        }
+
+        .canvas-container {
+            position: relative;
+            background-color: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            aspect-ratio: 1 / 1;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 0; /* Help with flex/grid sizing */
+            display: flex; /* Ensure canvas stretches */
+            align-items: center; /* Center canvas if aspect ratio doesn't match */
+            justify-content: center;
+        }
+
+        .canvas-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Ensure canvas fits */
+        }
+
+        .canvas-overlay {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.8);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .controls {
+            background-color: rgba(255, 255, 255, 0.03);
+            padding: 20px; /* Slightly reduced padding */
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Reduced gap */
+            overflow-y: auto; /* This is key for preventing button cropping */
+            max-height: 100%; /* Allow controls to use full grid cell height */
+        }
+        /* Custom scrollbar for controls */
+        .controls::-webkit-scrollbar {
+          width: 8px;
+        }
+        .controls::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+        }
+        .controls::-webkit-scrollbar-thumb {
+          background-color: var(--primary);
+          border-radius: 10px;
+          border: 2px solid transparent;
+          background-clip: content-box;
+        }
+        .controls::-webkit-scrollbar-thumb:hover {
+          background-color: var(--primary-dark);
+        }
+
+
+        .control-group {
+            position: relative;
+            overflow: hidden; /* Contain children */
+            flex-shrink: 0; /* Prevent groups from shrinking oddly */
+        }
+
+        .control-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px; /* Reduced margin */
+        }
+
+        .control-group h3 {
+            font-size: 1.05rem; /* Adjusted size */
+            font-weight: 600;
+            color: var(--light);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .control-group h3 svg {
+            width: 18px;
+            height: 18px;
+            opacity: 0.7;
+        }
+
+        .control-body {
+            padding-top: 5px;
+        }
+
+        .slider-container {
+            margin-bottom: 15px; /* Reduced margin */
+        }
+
+        label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 0.9rem;
+            color: var(--mid);
+        }
+
+        .value-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 0.8rem;
+            font-family: monospace;
+            color: var(--light);
+            white-space: nowrap; /* Prevent wrapping */
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+            border: none; /* Necessary for Firefox */
+            transition: all 0.2s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            background: var(--secondary);
+        }
+        input[type="range"]::-moz-range-thumb:hover {
+            transform: scale(1.2);
+            background: var(--secondary);
+        }
+
+        select, .select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: var(--radius);
+            color: var(--light);
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+        }
+
+        select option {
+            background-color: var(--dark);
+            color: var(--light);
+        }
+
+        select:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .select-wrapper::after {
+            content: '▼';
+            font-size: 0.7rem;
+            color: var(--mid);
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        button {
+            padding: 12px 18px;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+            text-align: center; /* Ensure text is centered */
+            white-space: nowrap; /* Prevent text wrapping */
+            overflow: hidden; /* Hide overflow if text is too long */
+            text-overflow: ellipsis; /* Add ellipsis if text overflows */
+        }
+
+        button svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0; /* Prevent icon shrinking */
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--light);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-accent {
+            background: linear-gradient(90deg, var(--accent), var(--secondary));
+            color: white;
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-group button {
+            flex: 1; /* Allow buttons to share space */
+            min-width: 0; /* Allow buttons to shrink if needed */
+        }
+
+        .color-picker {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px; /* Reduced margin */
+            gap: 10px; /* Add gap */
+        }
+
+        .color-picker label {
+            flex: 1;
+            margin-bottom: 0; /* Remove bottom margin */
+            text-align: right; /* Align label text right */
+        }
+
+        .color-preview {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            /* margin-right: 10px; Removed margin, using gap */
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .color-picker input[type="color"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 30px; /* Reduced size */
+            height: 30px;
+            border: none;
+            border-radius: 8px;
+            background: none;
+            cursor: pointer;
+            padding: 0; /* Remove padding */
+            overflow: hidden; /* Hide potential borders */
+            flex-shrink: 0;
+        }
+        .color-picker input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        .color-picker input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 6px; /* Adjusted radius */
+        }
+        .color-picker input[type="color"]::-moz-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px; /* Reduced gap */
+            margin-bottom: 15px;
+        }
+
+        .preset-item {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: var(--radius);
+            padding: 10px; /* Reduced padding */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .preset-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .preset-item.active {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.15); /* Slightly more visible */
+        }
+
+        .preset-item strong { /* Changed span to strong for semantics */
+            font-size: 0.8rem; /* Adjusted size */
+            display: block;
+            margin-top: 5px;
+            color: var(--mid);
+            font-weight: 500; /* Normal weight */
+        }
+
+        .preset-thumbnail {
+            width: 100%;
+            height: 50px; /* Reduced height */
+            border-radius: 6px;
+            background-color: rgba(255, 255, 255, 0.1); /* Placeholder background */
+            margin-bottom: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: var(--mid);
+        }
+        .preset-thumbnail.icon-stars::before { content: '✨'; }
+        .preset-thumbnail.icon-network::before { content: '🔗'; }
+        .preset-thumbnail.icon-firefly::before { content: '💡'; }
+        .preset-thumbnail.icon-molecule::before { content: '⚛️'; }
+        .preset-thumbnail.icon-tree::before { content: '🌳'; }
+        .preset-thumbnail.icon-fern::before { content: '🌿'; }
+        .preset-thumbnail.icon-coral::before { content: '🌊'; }
+        .preset-thumbnail.icon-crystal::before { content: '💎'; }
+        .preset-thumbnail.icon-river::before { content: '🏞️'; }
+        .preset-thumbnail.icon-wind::before { content: '💨'; }
+        .preset-thumbnail.icon-current::before { content: '🌀'; }
+        .preset-thumbnail.icon-plasma::before { content: '⚡'; }
+        .preset-thumbnail.icon-cells::before { content: '🧬'; }
+        .preset-thumbnail.icon-mosaic::before { content: '🧱'; }
+        .preset-thumbnail.icon-shatter::before { content: '💥'; }
+        .preset-thumbnail.icon-gem::before { content: '💍'; }
+        .preset-thumbnail.icon-ocean::before { content: '🌊'; }
+        .preset-thumbnail.icon-ripple::before { content: '💧'; }
+        .preset-thumbnail.icon-sound::before { content: '🎵'; }
+        .preset-thumbnail.icon-terrain::before { content: '⛰️'; }
+        .preset-thumbnail.icon-classic::before { content: '🔄'; }
+        .preset-thumbnail.icon-maze::before { content: ' labyrinth'; } /* text doesn't render well */
+        .preset-thumbnail.icon-circuit::before { content: '🔌'; }
+        .preset-thumbnail.icon-weave::before { content: '🧶'; }
+        .preset-thumbnail.icon-noise::before { content: '🌫️'; }
+        .preset-thumbnail.icon-fbm::before { content: '🗺️'; }
+        .preset-thumbnail.icon-lsystem::before { content: '🌱'; }
+        .preset-thumbnail.icon-reaction::before { content: '🦠'; }
+        .preset-thumbnail.icon-penrose::before { content: '💠'; }
+        .preset-thumbnail.icon-lorenz::before { content: '🦋'; }
+
+
+        .gallery {
+            margin-top: 30px; /* Reduced margin */
+            position: relative;
+            flex-shrink: 0; /* Prevent gallery from shrinking */
+            padding-bottom: 20px; /* Add some bottom padding */
+        }
+
+        .gallery h2 {
+            font-size: 1.6rem; /* Adjusted size */
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Adjusted size */
+            gap: 15px; /* Reduced gap */
+            max-height: 30vh; /* Limit gallery height */
+            overflow-y: auto; /* Scroll gallery if needed */
+            padding: 5px; /* Padding for scrollbar */
+            justify-content: center; /* Center-align gallery items */
+        }
+        /* Custom scrollbar for gallery */
+        .gallery-grid::-webkit-scrollbar {
+          width: 8px;
+        }
+        .gallery-grid::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.05);
+          border-radius: 10px;
+        }
+        .gallery-grid::-webkit-scrollbar-thumb {
+          background-color: var(--secondary);
+          border-radius: 10px;
+          border: 2px solid transparent;
+          background-clip: content-box;
+        }
+
+
+        .gallery-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            aspect-ratio: 1 / 1;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px) scale(1.03); /* Adjusted hover effect */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .gallery-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .gallery-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 10px; /* Reduced padding */
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.85), transparent);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            display: flex;
+            justify-content: flex-end; /* Align button to the right */
+            align-items: center;
+        }
+
+        .gallery-item:hover .gallery-overlay {
+            opacity: 1;
+        }
+
+        .gallery-overlay button {
+            width: 35px; /* Adjusted size */
+            height: 35px;
+            border-radius: 50%;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--primary); /* Consistent button style */
+            color: white;
+            flex-shrink: 0;
+        }
+        .gallery-overlay button:hover {
+            background-color: var(--primary-dark);
+        }
+        .gallery-overlay button svg {
+            width: 16px; /* Adjusted icon size */
+            height: 16px;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help; /* Indicate help is available */
+        }
+
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 180px; /* Adjusted width */
+            background-color: rgba(0, 0, 0, 0.85);
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 100; /* Ensure tooltip is on top */
+            bottom: 130%; /* Position above the element */
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem; /* Adjusted size */
+            pointer-events: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+         /* Arrow for tooltip */
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.85) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        footer {
+            text-align: center;
+            padding: 15px 0 10px; /* Reduced padding */
+            color: var(--mid);
+            font-size: 0.8rem; /* Adjusted size */
+            flex-shrink: 0; /* Prevent footer shrinking */
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
+            70% { transform: scale(1.03); box-shadow: 0 0 0 10px rgba(99, 102, 241, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+            border-radius: var(--radius); /* Ensure pulse shadow follows radius */
+        }
+
+        .empty-gallery {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius);
+            padding: 40px 20px; /* Reduced padding */
+            text-align: center;
+            border: 2px dashed rgba(255, 255, 255, 0.1);
+            grid-column: 1 / -1; /* Span across all columns */
+            display: flex; /* Use flex for centering */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 150px; /* Ensure it has some height */
+        }
+        .empty-gallery svg {
+            color: var(--mid);
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-gallery p {
+            color: var(--mid);
+            margin-bottom: 20px;
+        }
+
+        /* Responsiveness */
+        @media (max-width: 900px) {
+            body {
+                 overflow: auto !important; /* Allow body scroll on smaller screens */
+            }
+             html, body {
+                height: auto !important; /* Reset height */
+            }
+            .container {
+                 height: auto !important;
+                 padding: 10px;
+                 overflow: visible !important;
+            }
+            .main-content-area {
+                overflow: visible !important; /* Allow content to flow */
+                min-height: 0 !important; 
+            }
+            .main-content {
+                grid-template-columns: 1fr; /* Stack canvas and controls */
+                overflow: visible !important;
+                min-height: auto !important;
+            }
+
+            .controls {
+                order: 2;
+                max-height: none !important; /* Remove max-height */
+                overflow-y: visible !important; /* Disable internal scroll */
+            }
+
+            .canvas-container {
+                order: 1;
+                max-height: 350px !important; /* Increased from 300px */
+                aspect-ratio: unset !important; /* Allow flexible aspect ratio */
+                width: 100% !important; /* Take full width */
+                height: auto !important; /* Auto height */
+                min-height: 250px !important; /* Increased from 200px */
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); /* Smaller gallery items */
+                max-height: 40vh; /* Adjust gallery height */
+            }
+             header h1 { font-size: 2rem; }
+             header p { font-size: 0.9rem; }
+             
+             .nav-buttons {
+                 position: static;
+                 margin-top: 15px;
+                 justify-content: center;
+                 width: 100%;
+             }
+        }
+        
+        @media (max-width: 500px) {
+            .nav-button {
+                padding: 6px 10px;
+                font-size: 0.8rem;
+            }
+            
+            .nav-button svg {
+                width: 14px;
+                height: 14px;
+            }
+            
+            header h1 {
+                font-size: 1.7rem;
+            }
+            
+            header p {
+                font-size: 0.8rem;
+            }
+            
+            .gallery-grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            }
+            
+            .preset-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+         /* Small height optimization */
+         @media (max-height: 700px) and (min-width: 901px) {
+             .gallery { margin-top: 15px;}
+             .gallery h2 { font-size: 1.4rem; margin-bottom: 10px;}
+             .gallery-grid { max-height: 25vh; }
+             header { padding: 10px 0 15px; }
+         }
+
+        /* Loading indicator */
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--light);
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 8px;
+            z-index: 20;
+            display: none; /* Hidden by default */
+            font-size: 0.9rem;
+        }
+        .canvas-container.loading .loading-indicator {
+            display: block;
+        }
+
+        /* Fix mobile scrolling issues */
+        html {
+            height: 100%;
+            overflow-y: auto !important;
+        }
+        
+        body {
+            min-height: 100%;
+            overflow-y: auto !important;
+        }
+        
+        /* Fix mobile canvas styles */
+        canvas {
+            display: block;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; /* Ensure canvas fits */
+        }
+        
+        @media (max-width: 500px) {
+            /* Even smaller canvas for very small screens */
+            .canvas-container {
+                max-height: 300px !important; /* Increased from 250px */
+                min-height: 200px !important; /* Increased from 180px */
+            }
+            
+            /* More compact controls */
+            .slider-container {
+                margin-bottom: 10px !important;
+            }
+            
+            /* More compact algorithm select */
+            select {
+                padding: 8px 12px;
+                font-size: 0.85rem;
+            }
+            
+            /* More compact buttons */
+            button {
+                padding: 10px 15px;
+                font-size: 0.85rem;
+            }
+            
+            /* Ensure parameters section doesn't get lost */
+            #parameterControls {
+                margin-top: 15px;
+                border-top: 1px solid rgba(255, 255, 255, 0.1);
+                padding-top: 15px;
+            }
+        }
+
+        /* Mobile help message */
+        .mobile-help {
+            display: none;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.5);
+            border-radius: var(--radius);
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            font-size: 0.85rem;
+            color: var(--light);
+            text-align: center;
+        }
+        
+        @media (max-width: 900px) {
+            .mobile-help {
+                display: block;
+            }
+        }
+
+        /* Fullscreen button and close button */
+        .fullscreen-btn {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 15;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+        
+        .fullscreen-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .fullscreen-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+        
+        .close-fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 20;
+            transition: all 0.2s ease;
+            padding: 0;
+        }
+        
+        .close-fullscreen-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .close-fullscreen-btn:hover {
+            background: rgba(0, 0, 0, 0.7);
+            transform: scale(1.1);
+        }
+        
+        /* Fullscreen mode */
+        .canvas-container.fullscreen-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: none !important;
+            z-index: 1000;
+            background-color: var(--dark);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .canvas-container.fullscreen-mode .close-fullscreen-btn {
+            display: flex;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1010;
+        }
+        
+        .canvas-container.fullscreen-mode .canvas-overlay {
+            position: fixed;
+            top: 20px;
+            left: 0;
+            right: 0;
+            width: 100%;
+            text-align: center;
+            background: none;
+            font-size: 1.2rem;
+            padding: 8px;
+            z-index: 1005;
+        }
+        
+        .canvas-container.fullscreen-mode .fullscreen-btn {
+            display: none;
+        }
+        
+        .canvas-container.fullscreen-mode canvas {
+            width: 100vw !important;
+            height: 100vh !important;
+            max-height: 100vh !important;
+            max-width: 100vw !important;
+            object-fit: cover !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-background"></div>
+    <div class="container">
+        <header>
+            <h1>Procedural Art Generator</h1>
+            <p>Create stunning algorithmic artwork through parameter manipulation and explore the beauty of generative art</p>
+            <div class="nav-buttons">
+                <a href="about.html" class="nav-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    About
+                </a>
+                <a href="https://github.com/Saganaki22/ProceduralGen" target="_blank" class="nav-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                    </svg>
+                    GitHub
+                </a>
+            </div>
+        </header>
+
+        <div class="main-content-area">
+            <div class="main-content">
+                <div class="canvas-container" id="canvasContainer">
+                    <canvas id="artCanvas"></canvas>
+                    <div class="canvas-overlay" id="canvasInfo">Particle System</div>
+                    <div class="loading-indicator" id="loadingIndicator">Generating...</div>
+                    <button class="fullscreen-btn" id="fullscreenBtn" title="Enter fullscreen">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                    </button>
+                    <button class="close-fullscreen-btn" id="closeFullscreenBtn" title="Exit fullscreen">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mobile-help">
+                    Scroll down to access parameters and controls
+                </div>
+
+                <div class="controls">
+                    <div class="control-group">
+                        <div class="control-header">
+                            <h3>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                Algorithm
+                            </h3>
+                        </div>
+
+                        <div class="control-body">
+                            <div class="select-wrapper">
+                                <select id="algorithm">
+                                    <option value="particles">Particle System</option>
+                                    <option value="fractal">Recursive Patterns</option>
+                                    <option value="flowfield">Flow Field</option>
+                                    <option value="voronoi">Voronoi Diagram</option>
+                                    <option value="waves">Wave Patterns</option>
+                                    <option value="truchet">Truchet Tiles</option>
+                                    <option value="perlin">Perlin Noise</option>
+                                    <option value="fbm">Fractal Brownian Motion</option>
+                                    <option value="lsystem">L-System</option>
+                                    <option value="reactionDiffusion">Reaction-Diffusion</option>
+                                    <option value="penrose">Penrose Tiling</option>
+                                    <option value="lorenz">Lorenz Attractor</option>
+                                </select>
+                            </div>
+
+                            <div class="preset-grid" id="presetGrid">
+                                <!-- Presets will be added dynamically -->
+                            </div>
+
+                            <button id="randomize" class="btn-accent">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    <polyline points="7.5 4.21 12 6.81 16.5 4.21"></polyline>
+                                    <polyline points="7.5 19.79 7.5 14.6 3 12"></polyline>
+                                    <polyline points="21 12 16.5 14.6 16.5 19.79"></polyline>
+                                    <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                                    <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                                </svg>
+                                Generate Random Art
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <h3>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                                    <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                                    <line x1="15" y1="9" x2="15.01" y2="9"></line>
+                                </svg>
+                                Colors
+                            </h3>
+                        </div>
+
+                        <div class="control-body">
+                            <div class="color-picker">
+                                <div class="color-preview" id="primaryColorPreview"></div>
+                                <label for="primaryColor">Primary</label>
+                                <input type="color" id="primaryColor" value="#6366f1">
+                            </div>
+
+                            <div class="color-picker">
+                                <div class="color-preview" id="secondaryColorPreview"></div>
+                                <label for="secondaryColor">Secondary</label>
+                                <input type="color" id="secondaryColor" value="#ec4899">
+                            </div>
+
+                            <div class="color-picker">
+                                <div class="color-preview" id="backgroundColorPreview"></div>
+                                <label for="backgroundColor">Background</label>
+                                <input type="color" id="backgroundColor" value="#1e293b">
+                            </div>
+
+                            <div class="btn-group">
+                                <button id="randomColors" class="btn-secondary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M20 14.66V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h5.34"></path><polygon points="18 2 22 6 12 16 8 16 8 12 18 2"></polygon>
+                                    </svg>
+                                    Random
+                                </button>
+                                <button id="harmonyColors" class="btn-secondary">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                                    </svg>
+                                    Harmony
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <h3>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M12 2L2 7l10 5 10-5-10-5z"></path>
+                                    <path d="M2 17l10 5 10-5"></path>
+                                    <path d="M2 12l10 5 10-5"></path>
+                                </svg>
+                                Parameters
+                            </h3>
+                        </div>
+
+                        <div class="control-body" id="parameterControls">
+                            <!-- Parameter sliders will be dynamically added here -->
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-header">
+                            <h3>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Export
+                            </h3>
+                        </div>
+
+                        <div class="control-body">
+                            <button id="saveButton" class="btn-primary">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                Save Artwork
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="gallery">
+                <h2>Your Gallery</h2>
+                <div id="galleryGrid" class="gallery-grid">
+                    <div class="empty-gallery" id="emptyGallery">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <p>Your saved artwork will appear here</p>
+                        <button id="saveFirstArtwork" class="btn-primary pulse" style="width: auto; padding: 10px 20px;">Save Your First Creation</button>
+                    </div>
+                    <!-- Gallery items will be added here -->
+                </div>
+            </div>
+        </div>
+
+
+        <footer>
+            <p>Procedural Art Generator &copy; 2025 | Created with ❤️ for generative art</p>
+        </footer>
+    </div>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('artCanvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true }); // willReadFrequently hint can help performance for frequent toDataURL/getImageData
+        const canvasContainer = document.getElementById('canvasContainer');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        let animationFrameId = null;
+        const canvasInfo = document.getElementById('canvasInfo');
+
+        // UI Elements
+        const algorithmSelect = document.getElementById('algorithm');
+        const randomizeButton = document.getElementById('randomize');
+        const saveButton = document.getElementById('saveButton');
+        const saveFirstArtworkButton = document.getElementById('saveFirstArtwork');
+        const parameterControls = document.getElementById('parameterControls');
+        const primaryColorPicker = document.getElementById('primaryColor');
+        const secondaryColorPicker = document.getElementById('secondaryColor');
+        const backgroundColorPicker = document.getElementById('backgroundColor');
+        const primaryColorPreview = document.getElementById('primaryColorPreview');
+        const secondaryColorPreview = document.getElementById('secondaryColorPreview');
+        const backgroundColorPreview = document.getElementById('backgroundColorPreview');
+        const randomColorsButton = document.getElementById('randomColors');
+        const harmonyColorsButton = document.getElementById('harmonyColors'); // Renamed for clarity
+        const galleryGrid = document.getElementById('galleryGrid');
+        const emptyGallery = document.getElementById('emptyGallery');
+        const presetGrid = document.getElementById('presetGrid');
+
+        // App state
+        let currentAlgorithm = 'particles';
+        let isDrawing = false; // Flag to prevent concurrent redraws
+        let needsRedraw = true; // Flag to trigger redraw when idle
+
+        // --- Parameters Definition ---
+        let parameters = {
+            voronoi: {
+                points: { value: 30, min: 5, max: 100, step: 1, description: "Number of cell centers" },
+                jitter: { value: 0.5, min: 0, max: 1, step: 0.05, description: "Randomness in point distribution" },
+                lineWidth: { value: 1.5, min: 0.5, max: 5, step: 0.5, description: "Cell border width" },
+                relaxation: { value: 3, min: 0, max: 10, step: 1, description: "Lloyd's relaxation iterations" },
+                colorVariation: { value: 0.3, min: 0, max: 1, step: 0.05, description: "Variation in cell colors" },
+                showPoints: { value: true, min: 0, max: 1, step: 1, description: "Show Voronoi points" }
+            },
+            flowfield: {
+                resolution: { value: 20, min: 5, max: 50, step: 1, description: "Vector field grid size" },
+                particles: { value: 2000, min: 100, max: 8000, step: 100, description: "Number of particles" },
+                forceScale: { value: 0.1, min: 0.01, max: 0.5, step: 0.01, description: "Field force strength" },
+                noiseScale: { value: 0.005, min: 0.001, max: 0.05, step: 0.001, description: "Noise pattern scale" },
+                particleLife: { value: 50, min: 10, max: 200, step: 5, description: "Particle lifetime" },
+                lineWidth: { value: 1, min: 0.1, max: 5, step: 0.1, description: "Particle trail width" },
+                opacity: { value: 0.7, min: 0.1, max: 1, step: 0.05, description: "Trail opacity" }
+            },
+            perlin: {
+                scale: { value: 0.05, min: 0.001, max: 0.2, step: 0.001, description: "Noise zoom level" },
+                detail: { value: 4, min: 1, max: 8, step: 1, description: "Number of noise octaves (for fBm)" },
+                persistence: { value: 0.5, min: 0.1, max: 0.9, step: 0.05, description: "Amplitude decrease per octave" },
+                contrast: { value: 1.5, min: 0.5, max: 5, step: 0.1, description: "Color contrast adjustment" },
+                grayscale: { value: 0, min: 0, max: 1, step: 1, description: "Grayscale (1) or Color (0)" }
+            },
+            fbm: {
+                scale: { value: 0.02, min: 0.001, max: 0.1, step: 0.001, description: "Base noise scale" },
+                octaves: { value: 6, min: 1, max: 10, step: 1, description: "Number of noise layers" },
+                persistence: { value: 0.5, min: 0.1, max: 0.9, step: 0.05, description: "Amplitude decay per octave" },
+                lacunarity: { value: 2.0, min: 1.1, max: 4.0, step: 0.1, description: "Frequency increase per octave" },
+                intensity: { value: 1.0, min: 0.1, max: 3.0, step: 0.1, description: "Overall brightness/intensity" },
+                colorMix: { value: 0.5, min: 0, max: 1, step: 0.05, description: "Mix between primary/secondary colors" }
+            },
+            particles: {
+                count: { value: 150, min: 10, max: 1000, step: 10, description: "Number of particles" },
+                size: { value: 4, min: 1, max: 20, step: 0.5, description: "Size of each particle" },
+                speed: { value: 2, min: 0.1, max: 10, step: 0.1, description: "Movement speed" },
+                complexity: { value: 5, min: 1, max: 10, step: 0.5, description: "Interaction complexity" },
+                connectionDistance: { value: 100, min: 10, max: 300, step: 5, description: "Max connection distance" },
+                opacity: { value: 0.8, min: 0.1, max: 1, step: 0.05, description: "Particle/Connection opacity" },
+                life: { value: 100, min: 10, max: 500, step: 10, description: "Particle lifetime" },
+                fade: { value: 0.05, min: 0, max: 0.2, step: 0.01, description: "Trail fade effect" }
+            },
+            fractal: {
+                iterations: { value: 9, min: 1, max: 12, step: 1, description: "Recursion depth" },
+                angle: { value: 20, min: 5, max: 85, step: 1, description: "Branch angle (degrees)" },
+                branchRatio: { value: 0.7, min: 0.3, max: 0.9, step: 0.05, description: "Branch length ratio" },
+                initialSize: { value: 150, min: 50, max: 250, step: 5, description: "Initial trunk length" },
+                spread: { value: 0.3, min: 0, max: 1, step: 0.05, description: "Branch spread factor" },
+                thickness: { value: 12, min: 1, max: 20, step: 1, description: "Initial trunk thickness" }
+            },
+            waves: {
+                layers: { value: 5, min: 1, max: 10, step: 1, description: "Number of wave layers" },
+                amplitude: { value: 50, min: 10, max: 150, step: 5, description: "Wave height" },
+                frequency: { value: 0.02, min: 0.005, max: 0.05, step: 0.001, description: "Wave frequency" },
+                speed: { value: 0.5, min: 0.1, max: 2, step: 0.1, description: "Wave movement speed" },
+                density: { value: 100, min: 20, max: 300, step: 5, description: "Number of points per wave" },
+                turbulence: { value: 0.4, min: 0, max: 1, step: 0.05, description: "Wave irregularity" }
+            },
+            truchet: {
+                tileSize: { value: 40, min: 10, max: 100, step: 5, description: "Size of each tile" },
+                pattern: { value: 0, min: 0, max: 3, step: 1, description: "Tile pattern style" },
+                randomness: { value: 0.5, min: 0, max: 1, step: 0.05, description: "Pattern randomness" },
+                lineWidth: { value: 3, min: 1, max: 10, step: 0.5, description: "Line thickness" },
+                curveRadius: { value: 0.5, min: 0.1, max: 1, step: 0.05, description: "Curve smoothness" },
+                colorVariation: { value: 0.2, min: 0, max: 1, step: 0.05, description: "Color variation" }
+            },
+            lsystem: {
+                iterations: { value: 4, min: 1, max: 7, step: 1, description: "Recursion depth" },
+                angle: { value: 25, min: 1, max: 90, step: 1, description: "Angle increment (degrees)" },
+                stepLength: { value: 10, min: 1, max: 30, step: 1, description: "Segment length" },
+                lineWidth: { value: 1.5, min: 0.5, max: 5, step: 0.5, description: "Line thickness" },
+                ruleSet: { value: 1, min: 0, max: 3, step: 1, description: "L-system rule set" },
+                opacity: { value: 0.9, min: 0.1, max: 1, step: 0.05, description: "Line opacity" }
+            },
+            reactionDiffusion: {
+                resolution: { value: 128, min: 32, max: 256, step: 32, description: "Grid resolution" },
+                feedRate: { value: 0.037, min: 0.001, max: 0.1, step: 0.001, description: "Feed rate (F)" },
+                killRate: { value: 0.06, min: 0.001, max: 0.1, step: 0.001, description: "Kill rate (K)" },
+                diffA: { value: 1.0, min: 0.1, max: 1.0, step: 0.05, description: "Chemical A diffusion rate" },
+                diffB: { value: 0.5, min: 0.1, max: 1.0, step: 0.05, description: "Chemical B diffusion rate" },
+                stepsPerFrame: { value: 10, min: 1, max: 20, step: 1, description: "Simulation steps per frame" }
+            },
+            penrose: {
+                subdivisions: { value: 4, min: 1, max: 6, step: 1, description: "Subdivision iterations" },
+                lineWidth: { value: 1, min: 0.5, max: 5, step: 0.5, description: "Line thickness" },
+                fillTiles: { value: 1, min: 0, max: 1, step: 1, description: "Fill tiles (toggle)" },
+                colorVariation: { value: 0.2, min: 0, max: 1, step: 0.05, description: "Color variation" }
+            },
+            lorenz: {
+                sigma: { value: 10, min: 5, max: 20, step: 0.5, description: "Sigma parameter" },
+                rho: { value: 28, min: 10, max: 50, step: 0.5, description: "Rho parameter" },
+                beta: { value: 2.667, min: 0.5, max: 10, step: 0.1, description: "Beta parameter" },
+                timeStep: { value: 0.01, min: 0.001, max: 0.05, step: 0.001, description: "Time step size" },
+                trailLength: { value: 2000, min: 500, max: 5000, step: 100, description: "Trail length" },
+                lineWidth: { value: 0.5, min: 0.1, max: 2, step: 0.1, description: "Line thickness" },
+                scale: { value: 10, min: 3, max: 20, step: 0.5, description: "Display scale" }
+            }
+        };
+
+        // --- Colors ---
+        let colors = {
+            primary: '#6366f1',
+            secondary: '#ec4899',
+            background: '#1e293b'
+        };
+
+        // --- Presets Definition ---
+        const presets = {
+            particles: [
+                { name: "Stardust", thumbnail: "stars", settings: { count: 300, size: 2, speed: 1, complexity: 7, connectionDistance: 120, opacity: 0.7 } },
+                { name: "Network", thumbnail: "network", settings: { count: 80, size: 4, speed: 0.8, complexity: 8, connectionDistance: 200, opacity: 0.9 } },
+                { name: "Fireflies", thumbnail: "firefly", settings: { count: 200, size: 3, speed: 3, complexity: 5, connectionDistance: 50, opacity: 0.6 } },
+                { name: "Molecules", thumbnail: "molecule", settings: { count: 100, size: 8, speed: 1.2, complexity: 9, connectionDistance: 80, opacity: 1 } }
+            ],
+            fractal: [
+                { name: "Tree", thumbnail: "tree", settings: { iterations: 9, angle: 20, branchRatio: 0.7, initialSize: 150, spread: 0.3, thickness: 12 } },
+                { name: "Fern", thumbnail: "fern", settings: { iterations: 12, angle: 25, branchRatio: 0.85, initialSize: 120, spread: 0.5, thickness: 8 } },
+                { name: "Coral", thumbnail: "coral", settings: { iterations: 7, angle: 40, branchRatio: 0.6, initialSize: 100, spread: 0.8, thickness: 10 } },
+                { name: "Crystal", thumbnail: "crystal", settings: { iterations: 5, angle: 60, branchRatio: 0.5, initialSize: 170, spread: 0.1, thickness: 15 } }
+            ],
+            flowfield: [
+                { name: "River", thumbnail: "river", settings: { 
+                    resolution: 20, 
+                    particles: 5000, 
+                    forceScale: 0.25, 
+                    noiseScale: 0.005, 
+                    particleLife: 150, 
+                    lineWidth: 2.0 
+                }},
+                { name: "Wind", thumbnail: "wind", settings: { 
+                    resolution: 15, 
+                    particles: 8000, 
+                    forceScale: 0.3, 
+                    noiseScale: 0.008, 
+                    particleLife: 100, 
+                    lineWidth: 1.5 
+                }},
+                { name: "Currents", thumbnail: "current", settings: { 
+                    resolution: 25, 
+                    particles: 4000, 
+                    forceScale: 0.35, 
+                    noiseScale: 0.004, 
+                    particleLife: 200, 
+                    lineWidth: 2.5 
+                }},
+                { name: "Plasma", thumbnail: "plasma", settings: { 
+                    resolution: 10, 
+                    particles: 6000, 
+                    forceScale: 0.4, 
+                    noiseScale: 0.01, 
+                    particleLife: 80, 
+                    lineWidth: 3 
+                }}
+            ],
+            voronoi: [
+                { name: "Cells", thumbnail: "cells", settings: { points: 30, jitter: 0.5, lineWidth: 2, relaxation: 3, colorVariation: 0.3 } },
+                { name: "Mosaic", thumbnail: "mosaic", settings: { points: 50, jitter: 0.2, lineWidth: 3, relaxation: 5, colorVariation: 0.6 } },
+                { name: "Shattered", thumbnail: "shatter", settings: { points: 20, jitter: 0.8, lineWidth: 1, relaxation: 0, colorVariation: 0.2 } },
+                { name: "Gem", thumbnail: "gem", settings: { points: 40, jitter: 0.3, lineWidth: 2.5, relaxation: 8, colorVariation: 0.7 } }
+            ],
+            waves: [
+                { name: "Ocean", thumbnail: "ocean", settings: { layers: 5, amplitude: 50, frequency: 0.02, speed: 0.5, density: 100, turbulence: 0.4 } },
+                { name: "Ripples", thumbnail: "ripple", settings: { layers: 8, amplitude: 30, frequency: 0.03, speed: 0.8, density: 150, turbulence: 0.2 } },
+                { name: "Sound", thumbnail: "sound", settings: { layers: 3, amplitude: 80, frequency: 0.015, speed: 0.3, density: 200, turbulence: 0.7 } },
+                { name: "Terrain", thumbnail: "terrain", settings: { layers: 6, amplitude: 100, frequency: 0.01, speed: 0.1, density: 80, turbulence: 0.9 } }
+            ],
+            truchet: [
+                { name: "Classic", thumbnail: "classic", settings: { tileSize: 40, pattern: 0, randomness: 0.5, lineWidth: 3, curveRadius: 0.5, colorVariation: 0.2 } },
+                { name: "Maze", thumbnail: "maze", settings: { tileSize: 30, pattern: 1, randomness: 0.8, lineWidth: 4, curveRadius: 0.1, colorVariation: 0.1 } },
+                { name: "Circuits", thumbnail: "circuit", settings: { tileSize: 50, pattern: 2, randomness: 0.3, lineWidth: 2, curveRadius: 0.8, colorVariation: 0.4 } },
+                { name: "Weave", thumbnail: "weave", settings: { tileSize: 35, pattern: 3, randomness: 0.7, lineWidth: 5, curveRadius: 0.6, colorVariation: 0.5 } }
+            ],
+             perlin: [
+                { name: "Clouds", thumbnail: "noise", settings: { scale: 0.08, detail: 4, persistence: 0.5, contrast: 1.5, grayscale: 0 } },
+                { name: "Marble", thumbnail: "noise", settings: { scale: 0.03, detail: 6, persistence: 0.4, contrast: 2.5, grayscale: 1 } },
+                { name: "Wood Grain", thumbnail: "noise", settings: { scale: 0.1, detail: 3, persistence: 0.6, contrast: 2.0, grayscale: 0 } },
+                { name: "Terrain Map", thumbnail: "noise", settings: { scale: 0.05, detail: 7, persistence: 0.55, contrast: 1.8, grayscale: 0 } }
+            ],
+            fbm: [
+                { name: "Rough Terrain", thumbnail: "fbm", settings: { scale: 0.02, octaves: 7, persistence: 0.5, lacunarity: 2.2, intensity: 1.2, colorMix: 0.3 } },
+                { name: "Mystic Fog", thumbnail: "fbm", settings: { scale: 0.05, octaves: 5, persistence: 0.4, lacunarity: 1.8, intensity: 0.8, colorMix: 0.7 } },
+                { name: "Electric", thumbnail: "fbm", settings: { scale: 0.01, octaves: 8, persistence: 0.6, lacunarity: 2.5, intensity: 1.5, colorMix: 0.5 } },
+                { name: "Molten", thumbnail: "fbm", settings: { scale: 0.03, octaves: 6, persistence: 0.55, lacunarity: 2.0, intensity: 1.0, colorMix: 0.9 } }
+            ],
+            lsystem: [
+                { name: "Sierpinski", thumbnail: "lsystem", settings: { iterations: 6, angle: 60, stepLength: 8, lineWidth: 1, ruleSet: 0, opacity: 0.9 } },
+                { name: "Fractal Plant", thumbnail: "lsystem", settings: { iterations: 4, angle: 22, stepLength: 12, lineWidth: 1.5, ruleSet: 1, opacity: 0.8 } },
+                { name: "Koch Curve", thumbnail: "lsystem", settings: { iterations: 4, angle: 90, stepLength: 5, lineWidth: 1.2, ruleSet: 2, opacity: 1.0 } },
+                { name: "Dragon Curve", thumbnail: "lsystem", settings: { iterations: 7, angle: 90, stepLength: 6, lineWidth: 1, ruleSet: 3, opacity: 0.95 } }
+            ],
+            reactionDiffusion: [
+                { name: "Coral Growth", thumbnail: "reaction", settings: { resolution: 128, feedRate: 0.055, killRate: 0.062, diffA: 1.0, diffB: 0.5, stepsPerFrame: 10 } },
+                { name: "Mitosis", thumbnail: "reaction", settings: { resolution: 128, feedRate: 0.037, killRate: 0.06, diffA: 1.0, diffB: 0.5, stepsPerFrame: 15 } },
+                { name: "Mazes", thumbnail: "reaction", settings: { resolution: 128, feedRate: 0.029, killRate: 0.057, diffA: 1.0, diffB: 0.5, stepsPerFrame: 12 } },
+                { name: "Worms", thumbnail: "reaction", settings: { resolution: 128, feedRate: 0.014, killRate: 0.054, diffA: 1.0, diffB: 0.5, stepsPerFrame: 20 } }
+            ],
+            penrose: [
+                { name: "Rhombus Fill", thumbnail: "penrose", settings: { subdivisions: 4, lineWidth: 1, fillTiles: 1, colorVariation: 0.2 } },
+                { name: "Rhombus Lines", thumbnail: "penrose", settings: { subdivisions: 5, lineWidth: 1.5, fillTiles: 0, colorVariation: 0 } },
+                { name: "Dense Tiling", thumbnail: "penrose", settings: { subdivisions: 6, lineWidth: 0.5, fillTiles: 1, colorVariation: 0.4 } },
+                { name: "Minimalist", thumbnail: "penrose", settings: { subdivisions: 3, lineWidth: 2, fillTiles: 0, colorVariation: 0 } }
+            ],
+            lorenz: [
+                { name: "Classic Butterfly", thumbnail: "lorenz", settings: { sigma: 10, rho: 28, beta: 2.667, timeStep: 0.01, trailLength: 2000, lineWidth: 0.5 } },
+                { name: "Dense Chaos", thumbnail: "lorenz", settings: { sigma: 12, rho: 35, beta: 3, timeStep: 0.008, trailLength: 4000, lineWidth: 0.3 } },
+                { name: "Spiral Rings", thumbnail: "lorenz", settings: { sigma: 8, rho: 25, beta: 2, timeStep: 0.012, trailLength: 1500, lineWidth: 0.8 } },
+                { name: "Sharp Turns", thumbnail: "lorenz", settings: { sigma: 15, rho: 40, beta: 4, timeStep: 0.005, trailLength: 3000, lineWidth: 0.6 } }
+            ]
+        };
+
+        // --- Algorithm State Variables ---
+        let particles = [];
+        let flowParticles = [];
+        let flowField = [];
+        let noiseGenerator = new SimpleNoise(); // For Perlin/FBM
+        let lSystemString = '';
+        let lSystemTurtleStack = [];
+        let rdGridA = [], rdGridB = [], nextA = [], nextB = []; // Reaction-Diffusion grids
+        let penroseTiles = [];
+        let lorenzPoints = [];
+        let lorenzCurrentPos = { x: 0.1, y: 0, z: 0 };
+        let rdNeedsInitialization = true; // Specific flag for RD state
+        let penroseNeedsInitialization = true; // Specific flag for Penrose state
+        let lorenzNeedsInitialization = true; // Specific flag for Lorenz state
+        let voronoiNeedsInitialization = true; // Specific flag for Voronoi state
+        let waveTime = 0; // Add missing waveTime variable
+        let voronoiPoints = []; // Add missing voronoiPoints array
+
+        // --- Initialization ---
+        function init() {
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            updateColorPreviews();
+
+            algorithmSelect.addEventListener('change', handleAlgorithmChange);
+            randomizeButton.addEventListener('click', handleRandomize);
+            saveButton.addEventListener('click', saveArtwork);
+            saveFirstArtworkButton.addEventListener('click', saveArtwork);
+            primaryColorPicker.addEventListener('input', handleColorChange);
+            secondaryColorPicker.addEventListener('input', handleColorChange); // Use input for live preview
+            backgroundColorPicker.addEventListener('input', handleColorChange); // Use input for live preview
+            randomColorsButton.addEventListener('click', randomizeColors);
+            harmonyColorsButton.addEventListener('click', generateHarmonizedColors);
+
+            updateParameterControls();
+            updatePresetGrid();
+            loadGalleryFromLocalStorage(); // Load saved gallery items
+            startAnimation();
+            
+            // Fullscreen functionality
+            const fullscreenBtn = document.getElementById('fullscreenBtn');
+            const closeFullscreenBtn = document.getElementById('closeFullscreenBtn');
+            
+            fullscreenBtn.addEventListener('click', function() {
+                toggleFullscreen(true);
+            });
+            
+            closeFullscreenBtn.addEventListener('click', function() {
+                toggleFullscreen(false);
+            });
+            
+            // Also close fullscreen with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && canvasContainer.classList.contains('fullscreen-mode')) {
+                    toggleFullscreen(false);
+                }
+            });
+        }
+        
+        // Function to toggle fullscreen mode
+        function toggleFullscreen(enterFullscreen) {
+            if (enterFullscreen) {
+                canvasContainer.classList.add('fullscreen-mode');
+                document.body.style.overflow = 'hidden'; // Prevent scrolling while in fullscreen
+                
+                // Resize the canvas to fill the screen
+                const tempWidth = canvas.width;
+                const tempHeight = canvas.height;
+                
+                // Store the current aspect ratio for restoration later
+                canvas._originalWidth = tempWidth;
+                canvas._originalHeight = tempHeight;
+                
+                // Set canvas to window dimensions
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                // Special handling for Penrose tiling - force reinitialization
+                if (currentAlgorithm === 'penrose') {
+                    penroseNeedsInitialization = true;
+                    initPenrose();
+                }
+                
+                // Force immediate redraw at new size
+                needsRedraw = true;
+                if (animationFrameId === null) {
+                    redraw();
+                } else {
+                    // If animation is running, reset state for algorithms sensitive to canvas size
+                    resetAlgorithmState();
+                    initializeAlgorithmState();
+                }
+            } else {
+                canvasContainer.classList.remove('fullscreen-mode');
+                document.body.style.overflow = ''; // Restore scrolling
+                
+                // Restore original canvas size if we have stored dimensions
+                if (canvas._originalWidth && canvas._originalHeight) {
+                    canvas.width = canvas._originalWidth;
+                    canvas.height = canvas._originalHeight;
+                    
+                    // Clean up temporary properties
+                    delete canvas._originalWidth;
+                    delete canvas._originalHeight;
+                }
+                
+                // Special handling for Penrose tiling - force reinitialization
+                if (currentAlgorithm === 'penrose') {
+                    penroseNeedsInitialization = true;
+                    initPenrose();
+                }
+                
+                // Force redraw at original size
+                needsRedraw = true;
+                if (animationFrameId === null) {
+                    redraw();
+                } else {
+                    // If animation is running, reset state for algorithms sensitive to canvas size
+                    resetAlgorithmState();
+                    initializeAlgorithmState();
+                }
+            }
+        }
+
+        function handleAlgorithmChange(e) {
+            stopAnimation(); // Stop current animation first
+            
+            // Reset any current state
+            resetAlgorithmState();
+            
+            // Update algorithm and UI
+            currentAlgorithm = e.target.value;
+            canvasInfo.textContent = formatAlgorithmName(currentAlgorithm);
+            
+            // Update UI controls
+            updateParameterControls();
+            updatePresetGrid();
+            
+            // Force state reset and initialization for the new algorithm
+            console.log(`Switching to algorithm: ${currentAlgorithm}`);
+            
+            // Force initialization flag resets
+            rdNeedsInitialization = true;
+            penroseNeedsInitialization = true;
+            lorenzNeedsInitialization = true;
+            voronoiNeedsInitialization = true;
+            lSystemString = '';
+            
+            // Initialize now
+            initializeAlgorithmState();
+            
+            // Explicitly mark for redraw
+            needsRedraw = true;
+            
+            // Start animation again in next frame
+            requestAnimationFrame(startAnimation);
+            
+            // On mobile, scroll to parameter controls when algorithm changes
+            if (window.innerWidth <= 900) {
+                // Use setTimeout to ensure the DOM has updated
+                setTimeout(() => {
+                    const paramSection = document.getElementById('parameterControls');
+                    if (paramSection) {
+                        paramSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                }, 300);
+            }
+        }
+
+        function handleRandomize() {
+            stopAnimation();
+            randomizeParameters();
+            pulseCanvasContainer();
+            resetAlgorithmState();
+            needsRedraw = true;
+            requestAnimationFrame(startAnimation);
+        }
+
+        function handleColorChange(e) {
+             if (e.target.id === 'primaryColor') colors.primary = e.target.value;
+             if (e.target.id === 'secondaryColor') colors.secondary = e.target.value;
+             if (e.target.id === 'backgroundColor') colors.background = e.target.value;
+             updateColorPreviews();
+             needsRedraw = true; // Mark for redraw, animation loop will handle it
+             if (animationFrameId === null) { // If not animating, draw immediately
+                 redraw();
+             }
+        }
+
+        function resizeCanvas() {
+            // If in fullscreen mode, use the full window dimensions
+            if (canvasContainer.classList.contains('fullscreen-mode')) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                
+                // Force redraw at new size
+                needsRedraw = true;
+                if (animationFrameId === null) {
+                    redraw();
+                }
+                return;
+            }
+            
+            const containerRect = canvasContainer.getBoundingClientRect();
+            // Maintain aspect ratio 1:1 but with minimum size of 1080x1080
+            const displaySize = Math.min(containerRect.width, containerRect.height);
+            const renderSize = Math.max(1080, displaySize); // Ensure minimum 1080px for rendering
+
+            // Set the internal canvas resolution to the render size
+            canvas.width = renderSize;
+            canvas.height = renderSize;
+            
+            // Set the display size through CSS
+            canvas.style.width = `${displaySize}px`;
+            canvas.style.height = `${displaySize}px`;
+            
+            // Also update container size for better layout stability
+            canvasContainer.style.width = `${displaySize}px`;
+            canvasContainer.style.height = `${displaySize}px`;
+
+            // Reset state for algorithms sensitive to canvas size
+            resetAlgorithmState();
+
+            needsRedraw = true;
+            if (animationFrameId === null) {
+                redraw();
+            }
+        }
+
+        function updateColorPreviews() {
+            primaryColorPreview.style.backgroundColor = colors.primary;
+            secondaryColorPreview.style.backgroundColor = colors.secondary;
+            backgroundColorPreview.style.backgroundColor = colors.background;
+        }
+
+        function updateParameterControls() {
+            parameterControls.innerHTML = ''; // Clear previous controls
+            const currentParams = parameters[currentAlgorithm];
+
+            for (const [paramName, paramConfig] of Object.entries(currentParams)) {
+                const sliderContainer = document.createElement('div');
+                sliderContainer.className = 'slider-container';
+
+                const label = document.createElement('label');
+                const paramLabel = document.createElement('span');
+                paramLabel.textContent = formatParameterName(paramName);
+
+                 // Add tooltip if description exists
+                 if (paramConfig.description) {
+                     paramLabel.classList.add('tooltip');
+                     const tooltipText = document.createElement('span');
+                     tooltipText.className = 'tooltip-text';
+                     tooltipText.textContent = paramConfig.description;
+                     paramLabel.appendChild(tooltipText);
+                 }
+
+                label.appendChild(paramLabel);
+
+                const valueDisplay = document.createElement('span');
+                valueDisplay.className = 'value-display';
+                // Format value based on step
+                const numDecimals = paramConfig.step < 0.001 ? 3 : (paramConfig.step < 0.1 ? 2 : (paramConfig.step < 1 ? 1 : 0));
+                valueDisplay.textContent = Number(paramConfig.value).toFixed(numDecimals);
+
+                label.appendChild(valueDisplay);
+                sliderContainer.appendChild(label);
+
+                const slider = document.createElement('input');
+                slider.type = 'range';
+                slider.min = paramConfig.min;
+                slider.max = paramConfig.max;
+                slider.step = paramConfig.step;
+                slider.value = paramConfig.value;
+                slider.dataset.param = paramName; // Store param name
+
+                slider.addEventListener('input', (e) => {
+                    const param = e.target.dataset.param;
+                    const value = parseFloat(e.target.value);
+                    parameters[currentAlgorithm][param].value = value;
+                    valueDisplay.textContent = value.toFixed(numDecimals);
+                    needsRedraw = true; // Trigger redraw on next animation frame
+
+                    // Reset state for algorithms sensitive to certain param changes
+                    // Use specific boolean flags for clarity
+                    if (currentAlgorithm === 'reactionDiffusion' && (param === 'resolution' )) rdNeedsInitialization = true;
+                    if (currentAlgorithm === 'lsystem' && (param === 'iterations' || param === 'ruleSet')) lSystemString = ''; // Just reset string to regenerate
+                    if (currentAlgorithm === 'penrose' && (param === 'subdivisions')) penroseNeedsInitialization = true;
+                    if (currentAlgorithm === 'lorenz' && (param === 'sigma' || param === 'rho' || param === 'beta' || param === 'timeStep')) lorenzNeedsInitialization = true;
+                    if (currentAlgorithm === 'voronoi' && (param === 'points' || param === 'relaxation')) voronoiNeedsInitialization = true;
+                     if (currentAlgorithm === 'particles' && param === 'count') particles = []; // Force reinit
+                     if (currentAlgorithm === 'flowfield' && (param === 'resolution' || param === 'particles')) flowField = [], flowParticles = []; // Force reinit
+
+                    // If not animating, redraw immediately
+                    if (animationFrameId === null) {
+                        redraw();
+                    }
+                });
+
+                sliderContainer.appendChild(slider);
+                parameterControls.appendChild(sliderContainer);
+            }
+        }
+
+
+         function updatePresetGrid() {
+             presetGrid.innerHTML = '';
+             const currentAlgorithmPresets = presets[currentAlgorithm];
+             if (!currentAlgorithmPresets) return;
+
+             currentAlgorithmPresets.forEach((preset, index) => {
+                 const presetItem = document.createElement('div');
+                 presetItem.className = 'preset-item';
+                 presetItem.innerHTML = `
+                     <div class="preset-thumbnail icon-${preset.thumbnail || 'default'}"></div>
+                     <strong>${preset.name}</strong>
+                 `;
+
+                 presetItem.addEventListener('click', () => {
+                     stopAnimation(); // Stop animation before applying preset
+                     applyPreset(preset);
+
+                     document.querySelectorAll('.preset-item.active').forEach(item => item.classList.remove('active'));
+                     presetItem.classList.add('active');
+
+                     resetAlgorithmState(); // Reset state after applying preset
+                     needsRedraw = true;
+                     requestAnimationFrame(startAnimation); // Restart animation
+                 });
+
+                 presetGrid.appendChild(presetItem);
+             });
+         }
+
+        function applyPreset(preset) {
+            const currentParams = parameters[currentAlgorithm];
+            for (const [paramName, value] of Object.entries(preset.settings)) {
+                if (currentParams[paramName]) {
+                    currentParams[paramName].value = value;
+                }
+            }
+            updateParameterControls(); // Update sliders to reflect preset values
+            pulseCanvasContainer();
+        }
+
+        function formatParameterName(name) {
+            return name
+                .replace(/([A-Z])/g, ' $1')
+                .replace(/^./, str => str.toUpperCase());
+        }
+
+        function formatAlgorithmName(name) {
+            switch(name) {
+                case 'particles': return 'Particle System';
+                case 'fractal': return 'Recursive Patterns';
+                case 'flowfield': return 'Flow Field';
+                case 'voronoi': return 'Voronoi Diagram';
+                case 'waves': return 'Wave Patterns';
+                case 'truchet': return 'Truchet Tiles';
+                case 'perlin': return 'Perlin Noise';
+                case 'fbm': return 'Fractal Brownian Motion';
+                case 'lsystem': return 'L-System';
+                case 'reactionDiffusion': return 'Reaction-Diffusion';
+                case 'penrose': return 'Penrose Tiling';
+                case 'lorenz': return 'Lorenz Attractor';
+                default: return name.charAt(0).toUpperCase() + name.slice(1);
+            }
+        }
+
+        function randomizeParameters() {
+            const currentParams = parameters[currentAlgorithm];
+            for (const [paramName, paramConfig] of Object.entries(currentParams)) {
+                const range = paramConfig.max - paramConfig.min;
+                let randomValue;
+                if (paramConfig.step === 1 && Number.isInteger(paramConfig.min) && Number.isInteger(paramConfig.max)) {
+                    // Integer parameter
+                    randomValue = paramConfig.min + Math.floor(Math.random() * (range + 1));
+                } else {
+                    // Floating point parameter
+                    randomValue = paramConfig.min + Math.random() * range;
+                    const numDecimals = paramConfig.step < 0.001 ? 3 : (paramConfig.step < 0.1 ? 2 : (paramConfig.step < 1 ? 1 : 0));
+                     randomValue = Number(randomValue.toFixed(numDecimals));
+                }
+                 // Clamp value just in case
+                 randomValue = Math.max(paramConfig.min, Math.min(paramConfig.max, randomValue));
+                 currentParams[paramName].value = randomValue;
+            }
+            randomizeColors();
+            updateParameterControls();
+        }
+
+        function randomizeColors() {
+            colors.primary = getRandomColor(true); // Get bright color
+            colors.secondary = getRandomColor(true); // Get bright color
+            colors.background = getRandomColor(false); // Get dark color
+
+            primaryColorPicker.value = colors.primary;
+            secondaryColorPicker.value = colors.secondary;
+            backgroundColorPicker.value = colors.background;
+            updateColorPreviews();
+            needsRedraw = true;
+        }
+
+        function generateHarmonizedColors() {
+            const baseHue = Math.random() * 360;
+            const schemeType = Math.random();
+            let hue1, hue2, bgHue;
+
+            if (schemeType < 0.33) { // Complementary
+                hue1 = baseHue;
+                hue2 = (baseHue + 180 + (Math.random() - 0.5) * 30) % 360; // Add slight variation
+                bgHue = (baseHue + 90) % 360;
+            } else if (schemeType < 0.66) { // Analogous
+                hue1 = baseHue;
+                hue2 = (baseHue + 30 + Math.random() * 30) % 360;
+                bgHue = (baseHue + 180) % 360; // Complementary background
+            } else { // Triadic
+                hue1 = baseHue;
+                hue2 = (baseHue + 120 + (Math.random() - 0.5) * 20) % 360;
+                bgHue = (baseHue + 240) % 360;
+            }
+
+            colors.primary = HSLToHex(hue1, 70 + Math.random() * 25, 60 + Math.random() * 15);
+            colors.secondary = HSLToHex(hue2, 70 + Math.random() * 25, 60 + Math.random() * 15);
+            colors.background = HSLToHex(bgHue, 15 + Math.random() * 15, 15 + Math.random() * 10); // Dark, less saturated background
+
+            primaryColorPicker.value = colors.primary;
+            secondaryColorPicker.value = colors.secondary;
+            backgroundColorPicker.value = colors.background;
+            updateColorPreviews();
+            needsRedraw = true;
+        }
+
+        function getRandomColor(isBright) {
+            const h = Math.random() * 360;
+            const s = isBright ? (60 + Math.random() * 40) : (10 + Math.random() * 30); // Saturation
+            const l = isBright ? (55 + Math.random() * 20) : (10 + Math.random() * 15); // Lightness
+            return HSLToHex(h, s, l);
+        }
+
+
+        function HSLToHex(h, s, l) {
+            h /= 360;
+            s /= 100;
+            l /= 100;
+            let r, g, b;
+            if (s === 0) {
+                r = g = b = l; // achromatic
+            } else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1;
+                    if (t > 1) t -= 1;
+                    if (t < 1 / 6) return p + (q - p) * 6 * t;
+                    if (t < 1 / 2) return q;
+                    if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1 / 3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1 / 3);
+            }
+            const toHex = x => {
+                const hex = Math.round(x * 255).toString(16);
+                return hex.length === 1 ? '0' + hex : hex;
+            };
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        function pulseCanvasContainer() {
+            const container = document.querySelector('.canvas-container');
+            container.classList.add('pulse');
+            setTimeout(() => container.classList.remove('pulse'), 1500); // Shorter pulse
+        }
+
+        // --- Gallery Functionality ---
+        const GALLERY_STORAGE_KEY = 'proceduralArtGallery';
+        let savedArtworks = [];
+
+        function triggerDownload(dataUrl, filename) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+
+            // Append link to body temporarily - improves compatibility in some browsers/contexts
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up the temporary link
+            // Use setTimeout to ensure click event finishes before removing in some edge cases
+            setTimeout(() => {
+                 document.body.removeChild(link);
+            }, 0);
+        }
+
+        function saveArtwork() {
+            console.log("Attempting to save artwork..."); // Log start
+            try {
+                // Ensure canvas has dimensions
+                if (canvas.width === 0 || canvas.height === 0) {
+                    console.error("Canvas has zero dimensions, cannot save.");
+                    alert("Cannot save artwork: Canvas is not ready or has no size.");
+                    return;
+                }
+
+                // Generate Data URL
+                console.log("Generating Data URL...");
+                const dataUrl = canvas.toDataURL('image/png');
+                console.log("Data URL generated (length):", dataUrl.length); // Log length as basic check
+
+                // Check if dataURL is valid (basic check)
+                if (!dataUrl || dataUrl === 'data:,') {
+                     console.error("Generated Data URL is invalid or empty.");
+                     alert("Failed to generate image data. The canvas might be empty or too large.");
+                     return;
+                }
+
+
+                const artworkData = {
+                    id: Date.now(),
+                    imageData: dataUrl, // Store the generated data URL
+                    algorithm: currentAlgorithm,
+                    // Optional: Store parameters/colors if needed for reload later
+                    // parameters: JSON.parse(JSON.stringify(parameters[currentAlgorithm])),
+                    // colors: JSON.parse(JSON.stringify(colors))
+                };
+
+                addArtworkToGallery(artworkData, true); // Add and save to localStorage
+                showSaveSuccessMessage();
+
+                // Removed: No longer automatically downloading when saving to gallery
+                // const filename = `procedural-art-${artworkData.algorithm}-${artworkData.id}.png`;
+                // console.log("Triggering download for:", filename);
+                // triggerDownload(artworkData.imageData, filename); 
+
+            } catch (error) {
+                console.error("Error saving artwork:", error);
+                 // Handle potential canvas security errors (tainted canvas)
+                 if (error.name === 'SecurityError') {
+                     alert("Could not save artwork due to canvas security restrictions. This can happen if images from other domains are loaded onto the canvas without permission.");
+                 } else if (error instanceof DOMException && error.name === 'IndexSizeError') {
+                      alert("Could not save artwork. The canvas dimensions might be too large for the browser to handle.");
+                 }
+                  else {
+                     alert(`An error occurred while saving the artwork: ${error.message}`);
+                 }
+            }
+        }
+
+        function addArtworkToGallery(artworkData, saveToStorage = false) {
+             if (emptyGallery) {
+                 emptyGallery.style.display = 'none';
+             }
+
+             const galleryItem = document.createElement('div');
+             galleryItem.className = 'gallery-item';
+             galleryItem.dataset.id = artworkData.id;
+
+             const img = document.createElement('img');
+             img.className = 'gallery-img';
+             img.src = artworkData.imageData; // Use the passed data URL
+             img.alt = `Procedural art generated with ${formatAlgorithmName(artworkData.algorithm)}`;
+             // Handle potential loading errors for the image itself
+             img.onerror = () => {
+                console.error(`Failed to load image for gallery item ${artworkData.id}`);
+                galleryItem.innerHTML = '<p style="color:red; font-size:0.8em; padding:5px;">Error loading preview</p>';
+             };
+
+
+             const overlay = document.createElement('div');
+             overlay.className = 'gallery-overlay';
+
+             const downloadBtn = document.createElement('button');
+             downloadBtn.className = 'btn-primary';
+             downloadBtn.innerHTML = `
+                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                     <polyline points="7 10 12 15 17 10"></polyline>
+                     <line x1="12" y1="15" x2="12" y2="3"></line>
+                 </svg>
+             `;
+             downloadBtn.setAttribute('title', 'Download Artwork'); // Tooltip
+
+             downloadBtn.addEventListener('click', (e) => {
+                 e.stopPropagation(); // Prevent triggering gallery item click
+                 try {
+                     const filename = `procedural-art-${artworkData.algorithm}-${artworkData.id}.png`;
+                     console.log("Triggering gallery download for:", filename);
+                     // Directly use the imageData stored in artworkData
+                     triggerDownload(artworkData.imageData, filename);
+                 } catch (downloadError) {
+                      console.error("Error triggering gallery download:", downloadError);
+                      alert(`Could not download image: ${downloadError.message}`);
+                 }
+             });
+
+             overlay.appendChild(downloadBtn);
+             galleryItem.appendChild(img);
+             galleryItem.appendChild(overlay);
+
+             // Gallery item click (optional: maybe load settings in future?)
+             galleryItem.addEventListener('click', () => {
+                  console.log(`Clicked gallery item: ${artworkData.id}, Algorithm: ${artworkData.algorithm}`);
+                  // Update: clicking the gallery item now does nothing specific
+                  // Future enhancement could be to load the settings from this artwork
+             });
+
+
+             galleryGrid.insertBefore(galleryItem, galleryGrid.firstChild);
+
+             if (saveToStorage) {
+                 // Add to the beginning of the array (newest first)
+                 savedArtworks.unshift(artworkData);
+                 
+                 // Limit to 4 items maximum - remove older ones
+                 savedArtworks = savedArtworks.slice(0, 4); 
+                 
+                 // Also limit the visual gallery to 4 items
+                 const galleryItems = galleryGrid.querySelectorAll('.gallery-item');
+                 if (galleryItems.length > 4) {
+                     // Remove any gallery items beyond the first 4
+                     for (let i = 4; i < galleryItems.length; i++) {
+                         galleryGrid.removeChild(galleryItems[i]);
+                     }
+                 }
+                 
+                 try {
+                     localStorage.setItem(GALLERY_STORAGE_KEY, JSON.stringify(savedArtworks));
+                 } catch (storageError) {
+                     console.error("Error saving gallery to localStorage:", storageError);
+                     // Handle potential quota exceeded errors
+                      if (storageError.name === 'QuotaExceededError' || storageError.code === 22 /* Some older browsers */) {
+                          alert("Could not save artwork to the gallery. Local storage quota might be full. Consider saving fewer items.");
+                          // Optionally remove the item added visually if saving failed
+                          try { galleryGrid.removeChild(galleryItem); } catch(removeError) {/* Ignore if already removed */}
+                          savedArtworks.shift(); // Remove from memory array too
+                      } else {
+                          alert(`An unknown error occurred while saving to gallery storage: ${storageError.message}`);
+                      }
+                 }
+             }
+         }
+
+        function loadGalleryFromLocalStorage() {
+            const storedGallery = localStorage.getItem(GALLERY_STORAGE_KEY);
+            if (storedGallery) {
+                try {
+                    savedArtworks = JSON.parse(storedGallery);
+                    if (Array.isArray(savedArtworks) && savedArtworks.length > 0) {
+                        emptyGallery.style.display = 'none';
+                        
+                        // Limit to 4 most recent images
+                        savedArtworks = savedArtworks.slice(0, 4);
+                        
+                        // Reverse to add oldest first, maintaining order
+                        // Reverse to add oldest first, maintaining order
+                        savedArtworks.slice().reverse().forEach(artworkData => addArtworkToGallery(artworkData, false));
+                    } else {
+                        savedArtworks = []; // Ensure it's an array if storage was corrupted
+                    }
+                } catch (e) {
+                     console.error("Error parsing gallery data from localStorage:", e);
+                     localStorage.removeItem(GALLERY_STORAGE_KEY); // Clear corrupted data
+                     savedArtworks = [];
+                 }
+            }
+        }
+
+        function showSaveSuccessMessage() {
+            const successMessage = document.createElement('div');
+            successMessage.textContent = 'Artwork saved to gallery!';
+            successMessage.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(34, 197, 94, 0.9);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 20px;
+                z-index: 1000;
+                font-size: 0.9rem;
+                box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+                opacity: 0;
+                transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; /* Added transform transition */
+                transform: translateX(-50%) translateY(10px); /* Start slightly lower */
+            `;
+            document.body.appendChild(successMessage);
+            // Fade in and slide up
+            setTimeout(() => {
+                successMessage.style.opacity = 1;
+                successMessage.style.transform = 'translateX(-50%) translateY(0)';
+            }, 10);
+            // Fade out and remove
+            setTimeout(() => {
+                successMessage.style.opacity = 0;
+                successMessage.style.transform = 'translateX(-50%) translateY(10px)';
+                setTimeout(() => {
+                    if (document.body.contains(successMessage)) {
+                        document.body.removeChild(successMessage);
+                    }
+                }, 300);
+            }, 2500);
+        }
+
+
+        // --- Animation and Drawing ---
+        function startAnimation() {
+            stopAnimation(); // Ensure no previous loop is running
+            setLoading(true); // Show loading indicator initially
+            
+            console.log('Starting animation for algorithm:', currentAlgorithm);
+
+            // Initialize state if needed before starting the animation loop
+            if (needsInitialization(currentAlgorithm)) {
+                console.log('Initializing state before animation');
+                initializeAlgorithmState();
+            }
+
+            // Special case for reaction diffusion - force initialization
+            if (currentAlgorithm === 'reactionDiffusion' && rdNeedsInitialization) {
+                initReactionDiffusion();
+            }
+
+            // Immediately set needsRedraw to true to ensure first frame is drawn
+            needsRedraw = true;
+            
+            function animationLoop() {
+                if (needsRedraw) {
+                    // Clear canvas and redraw the current state
+                    ctx.fillStyle = colors.background;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    try {
+                        // Draw based on current algorithm
+                        switch (currentAlgorithm) {
+                            case 'particles': drawParticleSystem(); break;
+                            case 'fractal': drawFractal(); break;
+                            case 'flowfield': drawFlowField(); break;
+                            case 'voronoi': drawVoronoi(); break;
+                            case 'waves': drawWaves(); break;
+                            case 'truchet': drawTruchet(); break;
+                            case 'perlin': drawPerlinNoise(); break;
+                            case 'fbm': drawFBM(); break;
+                            case 'lsystem': drawLSystem(); break;
+                            case 'reactionDiffusion': drawReactionDiffusion(); break;
+                            case 'penrose': drawPenrose(); break;
+                            case 'lorenz': drawLorenz(); break;
+                        }
+                        
+                        needsRedraw = false; // Reset redraw flag after drawing
+                        setLoading(false); // Hide loading indicator after successful draw
+                    } catch (error) {
+                        console.error(`Error drawing algorithm ${currentAlgorithm}:`, error);
+                        ctx.fillStyle = 'red';
+                        ctx.font = '16px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(`Error in ${currentAlgorithm}: ${error.message}`, canvas.width / 2, canvas.height / 2);
+                        setLoading(false);
+                    }
+                }
+
+                // Update state for animated algorithms
+                let shouldContinueAnimation = false;
+                if (isAnimatedAlgorithm(currentAlgorithm)) {
+                    switch (currentAlgorithm) {
+                        case 'particles': updateParticles(); break;
+                        case 'flowfield': updateFlowField(); break;
+                        case 'waves': updateWaves(); break;
+                        case 'reactionDiffusion': updateReactionDiffusion(); break;
+                        case 'lorenz': updateLorenz(); break;
+                    }
+                    needsRedraw = true; // Mark for redraw after state update
+                    shouldContinueAnimation = true;
+                }
+
+                // Continue animation loop if needed
+                if (shouldContinueAnimation) {
+                    animationFrameId = requestAnimationFrame(animationLoop);
+                } else {
+                    animationFrameId = null;
+                    console.log('Animation stopped for non-animated algorithm:', currentAlgorithm);
+                }
+            }
+            
+            // Start the animation loop
+            animationFrameId = requestAnimationFrame(animationLoop);
+        }
+
+        function stopAnimation() {
+            if (animationFrameId !== null) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+             setLoading(false); // Ensure loading indicator is off
+        }
+
+        function setLoading(isLoading) {
+            if (isLoading) {
+                canvasContainer.classList.add('loading');
+            } else {
+                canvasContainer.classList.remove('loading');
+            }
+        }
+
+         function redraw() {
+             if (isDrawing) return; // Prevent concurrent draws
+             isDrawing = true;
+             setLoading(true); // Show loading indicator
+             
+             // Use a small timeout to ensure UI updates
+             setTimeout(() => {
+                 try {
+                     // Clear canvas
+                     ctx.fillStyle = colors.background;
+                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+                     
+                     // Draw based on current algorithm
+                     switch (currentAlgorithm) {
+                         case 'particles': drawParticleSystem(); break;
+                         case 'fractal': drawFractal(); break;
+                         case 'flowfield': drawFlowField(); break;
+                         case 'voronoi': drawVoronoi(); break;
+                         case 'waves': drawWaves(); break;
+                         case 'truchet': drawTruchet(); break;
+                         case 'perlin': drawPerlinNoise(); break;
+                         case 'fbm': drawFBM(); break;
+                         case 'lsystem': drawLSystem(); break;
+                         case 'reactionDiffusion': drawReactionDiffusion(); break;
+                         case 'penrose': drawPenrose(); break;
+                         case 'lorenz': drawLorenz(); break;
+                         default:
+                             console.error(`Unknown algorithm: ${currentAlgorithm}`);
+                     }
+                     
+                 } catch (error) {
+                     console.error(`Error drawing algorithm ${currentAlgorithm}:`, error);
+                     // Display error message
+                     ctx.fillStyle = 'red';
+                     ctx.font = '16px sans-serif';
+                     ctx.textAlign = 'center';
+                     ctx.textBaseline = 'middle';
+                     ctx.fillText(`Error drawing ${currentAlgorithm}: ${error.message}`, canvas.width / 2, canvas.height / 2);
+                 } finally {
+                     isDrawing = false;
+                     setLoading(false);
+                 }
+             }, 0);
+         }
+
+        // --- Helper: Check if algorithm is animated ---
+        function isAnimatedAlgorithm(algo) {
+            return ['particles', 'flowfield', 'waves', 'reactionDiffusion', 'lorenz'].includes(algo);
+        }
+
+        // --- Helper: Check if initialization flags are set ---
+        function needsInitFlagsSet() {
+            switch(currentAlgorithm) {
+                case 'reactionDiffusion': return rdNeedsInitialization;
+                case 'penrose': return penroseNeedsInitialization;
+                case 'lorenz': return lorenzNeedsInitialization;
+                case 'voronoi': return voronoiNeedsInitialization;
+                 // LSystem string regeneration is handled differently (check if empty)
+                 // Particles/Flowfield reinit check handled in draw functions
+                 default: return false; // Assume others don't have specific flags
+            }
+        }
+
+
+        // --- Reset State Function ---
+        function resetAlgorithmState() {
+            // Clear specific states for algorithms
+            particles = [];
+            flowParticles = [];
+            flowField = [];
+            // noiseGenerator is stateless, no need to reset explicitly unless we change seed logic
+
+            // L-System: Clear generated string, it will be rebuilt on draw/init
+            lSystemString = '';
+            lSystemTurtleStack = [];
+
+            // Reaction-Diffusion: Clear grids and set init flag
+            rdGridA = []; rdGridB = []; nextA = []; nextB = [];
+            rdNeedsInitialization = true;
+
+            // Penrose: Clear tiles and set init flag
+            penroseTiles = [];
+            penroseNeedsInitialization = true;
+
+            // Lorenz: Clear trail and set init flag
+            lorenzPoints = [];
+            lorenzNeedsInitialization = true;
+             // Reset start pos with slight variation for randomness on reset/randomize
+            lorenzCurrentPos = { x: 0.1 + (Math.random()-0.5)*0.1, y: 0, z: 0 };
+
+            // Voronoi: Clear points and set init flag
+             voronoiPoints = [];
+             voronoiNeedsInitialization = true;
+
+            // Waves: Reset time
+             waveTime = 0;
+
+             console.log(`State reset for algorithm: ${currentAlgorithm}`);
+
+             // No immediate re-initialization here; let draw/startAnimation handle it via flags
+        }
+
+        function needsInitialization(algo) {
+             // Algorithms that require some setup before drawing/animating
+             return ['particles', 'flowfield', 'reactionDiffusion', 'lorenz', 'lsystem', 'penrose', 'voronoi'].includes(algo);
+        }
+
+        function initializeAlgorithmState() {
+            // Call specific init functions based on the current algorithm flags
+            // These functions set up the initial data structures only if needed
+            console.log(`Initializing state for ${currentAlgorithm}`);
+            switch (currentAlgorithm) {
+                case 'particles': if (particles.length === 0) initParticles(); break;
+                case 'flowfield': if (flowField.length === 0) initFlowField(); break;
+                case 'voronoi': if (voronoiNeedsInitialization) initVoronoi(); break;
+                case 'lsystem': if (!lSystemString) initLSystem(); break; // Check if string needs generation
+                case 'reactionDiffusion': if (rdNeedsInitialization) initReactionDiffusion(); break;
+                case 'penrose': if (penroseNeedsInitialization) initPenrose(); break;
+                case 'lorenz': if (lorenzNeedsInitialization) initLorenz(); break;
+            }
+        }
+
+        // --- Initialization Functions ---
+        function initFlowField() {
+            const params = parameters.flowfield;
+            const resolution = params.resolution.value;
+            const cols = Math.ceil(canvas.width / resolution);
+            const rows = Math.ceil(canvas.height / resolution);
+            
+            flowField = new Array(cols * rows);
+            flowParticles = [];
+            
+            // Initialize flow field
+            for (let i = 0; i < flowField.length; i++) {
+                const x = (i % cols) * resolution;
+                const y = Math.floor(i / cols) * resolution;
+                const angle = noiseGenerator.noise(x * params.noiseScale.value, y * params.noiseScale.value) * Math.PI * 2;
+                flowField[i] = {
+                    x: Math.cos(angle) * params.forceScale.value,
+                    y: Math.sin(angle) * params.forceScale.value
+                };
+            }
+            
+            // Initialize particles
+            for (let i = 0; i < params.particles.value; i++) {
+                flowParticles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    life: Math.random() * params.particleLife.value,
+                    maxLife: params.particleLife.value
+                });
+            }
+        }
+
+        function initVoronoi() {
+            const params = parameters.voronoi;
+            const numPoints = params.points.value;
+            const jitter = params.jitter.value;
+            
+            voronoiPoints = [];
+            for (let i = 0; i < numPoints; i++) {
+                voronoiPoints.push({
+                    x: Math.random() * canvas.width + (Math.random() - 0.5) * jitter * canvas.width,
+                    y: Math.random() * canvas.height + (Math.random() - 0.5) * jitter * canvas.height
+                });
+            }
+            
+            // Apply Lloyd's relaxation if needed
+            if (params.relaxation.value > 0) {
+                for (let i = 0; i < params.relaxation.value; i++) {
+                    // Simple relaxation - move points to center of their cells
+                    // This is a simplified version, real Lloyd's relaxation is more complex
+                    voronoiPoints = voronoiPoints.map(p => ({
+                        x: p.x + (Math.random() - 0.5) * jitter * 50,
+                        y: p.y + (Math.random() - 0.5) * jitter * 50
+                    }));
+                }
+            }
+        }
+
+        function initLSystem() {
+            const params = parameters.lsystem;
+            let axiom = 'F';
+            let rules = {
+                'F': 'FF+[+F-F-F]-[-F+F+F]'
+            };
+            
+            lSystemString = axiom;
+            for (let i = 0; i < params.iterations.value; i++) {
+                let newString = '';
+                for (let char of lSystemString) {
+                    newString += rules[char] || char;
+                }
+                lSystemString = newString;
+            }
+        }
+
+        function initReactionDiffusion() {
+            const params = parameters.reactionDiffusion;
+            const size = params.resolution.value;
+            
+            // Initialize grids
+            rdGridA = new Array(size * size).fill(1.0); // Fill with chemical A (everywhere)
+            rdGridB = new Array(size * size).fill(0.0); // No chemical B initially
+            nextA = new Array(size * size).fill(0.0);
+            nextB = new Array(size * size).fill(0.0);
+            
+            // Add initial seed of chemical B (a small circle in center)
+            const centerX = Math.floor(size / 2);
+            const centerY = Math.floor(size / 2);
+            const radius = Math.floor(size / 10);
+            
+            for(let y = 0; y < size; y++) {
+                for(let x = 0; x < size; x++) {
+                    const dx = x - centerX;
+                    const dy = y - centerY;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if(dist < radius) {
+                        const i = y * size + x;
+                        rdGridB[i] = 1.0; // Seed center with B
+                    }
+                }
+            }
+            
+            // Mark as initialized
+            rdNeedsInitialization = false;
+        }
+
+        function updateReactionDiffusion() {
+            const params = parameters.reactionDiffusion;
+            const size = params.resolution.value;
+            const dA = params.diffA.value;
+            const dB = params.diffB.value;
+            const f = params.feedRate.value;
+            const k = params.killRate.value;
+            const dt = 1.0; // Time step
+            
+            // For each point in the grid
+            for(let y = 0; y < size; y++) {
+                for(let x = 0; x < size; x++) {
+                    const i = y * size + x;
+                    
+                    // Get current values
+                    const a = rdGridA[i];
+                    const b = rdGridB[i];
+                    
+                    // Calculate Laplacian (average of 9-point stencil minus center)
+                    let sumA = 0;
+                    let sumB = 0;
+                    let count = 0;
+                    
+                    for(let dy = -1; dy <= 1; dy++) {
+                        for(let dx = -1; dx <= 1; dx++) {
+                            const nx = (x + dx + size) % size; // Wrap around edges
+                            const ny = (y + dy + size) % size;
+                            const ni = ny * size + nx;
+                            
+                            sumA += rdGridA[ni];
+                            sumB += rdGridB[ni];
+                            count++;
+                        }
+                    }
+                    
+                    const lapA = sumA / count - a;
+                    const lapB = sumB / count - b;
+                    
+                    // Reaction diffusion equation
+                    const reactionTerm = a * b * b;
+                    const feedTerm = f * (1.0 - a);
+                    const killTerm = (f + k) * b;
+                    
+                    // Update next state
+                    nextA[i] = a + dt * (dA * lapA - reactionTerm + feedTerm);
+                    nextB[i] = b + dt * (dB * lapB + reactionTerm - killTerm);
+                    
+                    // Clamp values to avoid instability
+                    nextA[i] = Math.max(0, Math.min(1, nextA[i]));
+                    nextB[i] = Math.max(0, Math.min(1, nextB[i]));
+                }
+            }
+            
+            // Swap grids for next iteration
+            [rdGridA, nextA] = [nextA, rdGridA];
+            [rdGridB, nextB] = [nextB, rdGridB];
+        }
+
+        function drawReactionDiffusion() {
+            const params = parameters.reactionDiffusion;
+            const size = params.resolution.value;
+            
+            // Create image data for rendering
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            // Scale factors for mapping the grid to the canvas
+            const scaleX = canvas.width / size;
+            const scaleY = canvas.height / size;
+            
+            // Color variables
+            const primaryColor = hexToRgb(colors.primary);
+            const secondaryColor = hexToRgb(colors.secondary);
+            const bgColor = hexToRgb(colors.background);
+            
+            // Draw each pixel in the grid
+            for(let y = 0; y < canvas.height; y++) {
+                // Map canvas y to grid y
+                const gridY = Math.min(size - 1, Math.floor(y / scaleY));
+                
+                for(let x = 0; x < canvas.width; x++) {
+                    // Map canvas x to grid x
+                    const gridX = Math.min(size - 1, Math.floor(x / scaleX));
+                    const gridIdx = gridY * size + gridX;
+                    
+                    // Get A and B concentrations
+                    const a = rdGridA[gridIdx];
+                    const b = rdGridB[gridIdx];
+                    
+                    // Compute color - B chemical concentration controls the color
+                    // Typically B concentration creates the visible pattern
+                    let r, g, bl;
+                    
+                    // Use 'b' value to blend between background color and primary color
+                    const t = Math.pow(b, 0.5); // Apply gamma for better contrast
+                    r = Math.floor(bgColor.r * (1 - t) + primaryColor.r * t);
+                    g = Math.floor(bgColor.g * (1 - t) + primaryColor.g * t);
+                    bl = Math.floor(bgColor.b * (1 - t) + primaryColor.b * t);
+                    
+                    // Set pixel data
+                    const idx = (y * canvas.width + x) * 4;
+                    data[idx] = r;
+                    data[idx + 1] = g;
+                    data[idx + 2] = bl;
+                    data[idx + 3] = 255; // Full alpha
+                }
+            }
+            
+            // Put the image data on canvas
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Run multiple simulation steps per frame for faster progress
+            for(let i = 0; i < params.stepsPerFrame.value; i++) {
+                updateReactionDiffusion();
+            }
+        }
+
+        function initPenrose() {
+            const params = parameters.penrose;
+            penroseTiles = [];
+            penroseNeedsInitialization = false;
+            
+            // Constants for Penrose tiling
+            const goldenRatio = (1 + Math.sqrt(5)) / 2;
+            const angle36 = Math.PI / 5;  // 36 degrees in radians
+            const angle72 = 2 * angle36;  // 72 degrees in radians
+            
+            // Create initial tiles - we'll start with a decagon made of kites
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+            
+            // Use a relative size based on the smaller dimension of the canvas
+            // This ensures proper scaling in both standard and fullscreen modes
+            const minDimension = Math.min(canvas.width, canvas.height);
+            const size = minDimension * 0.4; // 40% of the smaller dimension
+            
+            // Create 10 kites in a decagon around the center
+            for (let i = 0; i < 10; i++) {
+                const angle = i * angle36;
+                const type = i % 2 === 0 ? 'kite' : 'dart';
+                
+                penroseTiles.push({
+                    type: type,
+                    points: [
+                        { x: centerX, y: centerY },
+                        { x: centerX + size * Math.cos(angle), y: centerY + size * Math.sin(angle) },
+                        { x: centerX + size * Math.cos(angle + angle36), y: centerY + size * Math.sin(angle + angle36) }
+                    ],
+                    level: 0
+                });
+            }
+            
+            // Apply subdivision rules based on the subdivision parameter
+            for (let level = 0; level < params.subdivisions.value; level++) {
+                const newTiles = [];
+                
+                for (const tile of penroseTiles) {
+                    if (tile.level === level) {
+                        const p0 = tile.points[0];
+                        const p1 = tile.points[1];
+                        const p2 = tile.points[2];
+                        
+                        // Calculate intermediate points
+                        const q1 = {
+                            x: p0.x + (p1.x - p0.x) / goldenRatio,
+                            y: p0.y + (p1.y - p0.y) / goldenRatio
+                        };
+                        
+                        const q2 = {
+                            x: p0.x + (p2.x - p0.x) / goldenRatio,
+                            y: p0.y + (p2.y - p0.y) / goldenRatio
+                        };
+                        
+                        if (tile.type === 'kite') {
+                            // Subdivide kite into 2 kites and 1 dart
+                            newTiles.push({
+                                type: 'kite',
+                                points: [p0, q1, q2],
+                                level: level + 1
+                            });
+                            
+                            newTiles.push({
+                                type: 'kite',
+                                points: [q1, p1, p2],
+                                level: level + 1
+                            });
+                            
+                            newTiles.push({
+                                type: 'dart',
+                                points: [q2, p2, q1],
+                                level: level + 1
+                            });
+                        } else { // dart
+                            // Subdivide dart into 1 kite and 1 dart
+                            newTiles.push({
+                                type: 'dart',
+                                points: [p0, q1, q2],
+                                level: level + 1
+                            });
+                            
+                            newTiles.push({
+                                type: 'kite',
+                                points: [q2, p2, q1],
+                                level: level + 1
+                            });
+                        }
+                    } else {
+                        // Keep tiles from previous levels
+                        newTiles.push(tile);
+                    }
+                }
+                
+                penroseTiles = newTiles;
+            }
+        }
+
+        function initLorenz() {
+            const params = parameters.lorenz;
+            lorenzPoints = [];
+            
+            // Start with a standard initial position with slight randomness
+            lorenzCurrentPos = {
+                x: 0.1 + (Math.random() - 0.5) * 0.05,
+                y: 0.1 + (Math.random() - 0.5) * 0.05,
+                z: 25.0 + (Math.random() - 0.5) * 2.0
+            };
+            
+            // Pre-calculate several points to stabilize the attractor
+            const warmupSteps = 500;
+            for (let i = 0; i < warmupSteps; i++) {
+                updateLorenzPosition(params);
+            }
+            
+            // Mark as initialized
+            lorenzNeedsInitialization = false;
+        }
+
+        function updateLorenzPosition(params) {
+            // Lorenz system parameters
+            const sigma = params.sigma.value;
+            const rho = params.rho.value;
+            const beta = params.beta.value;
+            const dt = params.timeStep.value;
+            
+            // Calculate derivatives (Lorenz equations)
+            const dx = sigma * (lorenzCurrentPos.y - lorenzCurrentPos.x);
+            const dy = lorenzCurrentPos.x * (rho - lorenzCurrentPos.z) - lorenzCurrentPos.y;
+            const dz = lorenzCurrentPos.x * lorenzCurrentPos.y - beta * lorenzCurrentPos.z;
+            
+            // Update position using Runge-Kutta 4th order integration for stability
+            const x = lorenzCurrentPos.x;
+            const y = lorenzCurrentPos.y;
+            const z = lorenzCurrentPos.z;
+            
+            const k1x = dx;
+            const k1y = dy;
+            const k1z = dz;
+            
+            const k2x = sigma * ((y + k1y * dt/2) - (x + k1x * dt/2));
+            const k2y = (x + k1x * dt/2) * (rho - (z + k1z * dt/2)) - (y + k1y * dt/2);
+            const k2z = (x + k1x * dt/2) * (y + k1y * dt/2) - beta * (z + k1z * dt/2);
+            
+            const k3x = sigma * ((y + k2y * dt/2) - (x + k2x * dt/2));
+            const k3y = (x + k2x * dt/2) * (rho - (z + k2z * dt/2)) - (y + k2y * dt/2);
+            const k3z = (x + k2x * dt/2) * (y + k2y * dt/2) - beta * (z + k2z * dt/2);
+            
+            const k4x = sigma * ((y + k3y * dt) - (x + k3x * dt));
+            const k4y = (x + k3x * dt) * (rho - (z + k3z * dt)) - (y + k3y * dt);
+            const k4z = (x + k3x * dt) * (y + k3y * dt) - beta * (z + k3z * dt);
+            
+            lorenzCurrentPos.x = x + dt * (k1x + 2*k2x + 2*k3x + k4x) / 6;
+            lorenzCurrentPos.y = y + dt * (k1y + 2*k2y + 2*k3y + k4y) / 6;
+            lorenzCurrentPos.z = z + dt * (k1z + 2*k2z + 2*k3z + k4z) / 6;
+            
+            return {
+                x: lorenzCurrentPos.x,
+                y: lorenzCurrentPos.y,
+                z: lorenzCurrentPos.z
+            };
+        }
+
+        function updateLorenz() {
+            const params = parameters.lorenz;
+            
+            // Update position using Lorenz equations
+            const newPoint = updateLorenzPosition(params);
+            
+            // Scale and center for display
+            const scaleX = params.scale.value;
+            const scaleY = params.scale.value;
+            const scaleZ = params.scale.value * 0.5; // Lower Z scale for better visualization
+            
+            const x = (newPoint.x * scaleX) + canvas.width / 2;
+            const y = (-newPoint.z * scaleZ) + canvas.height / 2; // Use Z for Y-axis
+            const z = newPoint.y; // Store Y as Z for coloring
+            
+            // Add to points array with Z-value for coloring
+            lorenzPoints.push({x, y, z});
+            
+            // Limit the number of points to the trail length
+            if (lorenzPoints.length > params.trailLength.value) {
+                lorenzPoints.shift();
+            }
+        }
+
+        function drawLorenz() {
+            const params = parameters.lorenz;
+            
+            // Clear background
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (lorenzPoints.length < 2) return;
+            
+            const lineWidth = params.lineWidth.value;
+            
+            // Find Z range for coloring
+            let minZ = Infinity;
+            let maxZ = -Infinity;
+            
+            lorenzPoints.forEach(p => {
+                minZ = Math.min(minZ, p.z);
+                maxZ = Math.max(maxZ, p.z);
+            });
+            
+            const zRange = maxZ - minZ;
+            
+            // Draw lines with gradient colors based on Z position
+            for (let i = 1; i < lorenzPoints.length; i++) {
+                const p1 = lorenzPoints[i - 1];
+                const p2 = lorenzPoints[i];
+                
+                // Normalize Z value to 0-1 range
+                const t1 = zRange > 0 ? (p1.z - minZ) / zRange : 0.5;
+                const t2 = zRange > 0 ? (p2.z - minZ) / zRange : 0.5;
+                
+                // Use gradient for coloring based on Z position
+                const gradient = ctx.createLinearGradient(p1.x, p1.y, p2.x, p2.y);
+                
+                // Map to a multi-color gradient
+                const color1 = lerpColor(colors.primary, colors.secondary, t1);
+                const color2 = lerpColor(colors.primary, colors.secondary, t2);
+                
+                gradient.addColorStop(0, color1);
+                gradient.addColorStop(1, color2);
+                
+                // Calculate alpha based on position in the trail
+                const alpha = Math.pow(i / lorenzPoints.length, 0.5);
+                
+                // Draw line segment
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.lineWidth = lineWidth * alpha;
+                ctx.strokeStyle = gradient;
+                ctx.stroke();
+            }
+            
+            // Draw points
+            lorenzPoints.forEach((p, i) => {
+                // Draw points with size based on position in the trail
+                const size = (i / lorenzPoints.length) * lineWidth * 1.5;
+                if (size >= 0.5) {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+                    
+                    // Normalize Z value to 0-1 range for coloring
+                    const t = zRange > 0 ? (p.z - minZ) / zRange : 0.5;
+                    ctx.fillStyle = lerpColor(colors.primary, colors.secondary, t);
+                    ctx.fill();
+                }
+            });
+        }
+
+        // --- Drawing Functions ---
+        function drawFlowField() {
+            const params = parameters.flowfield;
+            
+            // Clear background with a slight fade effect for trails
+            ctx.fillStyle = hexToRgba(colors.background, 0.1);
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw particles
+            flowParticles.forEach(p => {
+                // Calculate opacity based on life
+                const alpha = p.life / params.particleLife.value;
+                ctx.strokeStyle = hexToRgba(colors.primary, alpha * params.opacity.value);
+                ctx.lineWidth = params.lineWidth.value;
+                
+                // Get grid cell
+                const col = Math.floor(p.x / params.resolution.value);
+                const row = Math.floor(p.y / params.resolution.value);
+                const index = row * Math.ceil(canvas.width / params.resolution.value) + col;
+                
+                // Draw particle trail
+                if (index >= 0 && index < flowField.length) {
+                    const force = flowField[index];
+                    ctx.beginPath();
+                    ctx.moveTo(p.x, p.y);
+                    ctx.lineTo(p.x - force.x * 2, p.y - force.y * 2);
+                    ctx.stroke();
+                }
+            });
+            
+            // Optionally visualize the flow field vectors (can be toggled)
+            // const visualizeField = false;
+            // if (visualizeField) {
+            //     const resolution = params.resolution.value;
+            //     const cols = Math.ceil(canvas.width / resolution);
+            //     const rows = Math.ceil(canvas.height / resolution);
+            //     
+            //     ctx.strokeStyle = hexToRgba(colors.secondary, 0.3);
+            //     ctx.lineWidth = 1;
+            //     
+            //     for (let i = 0; i < flowField.length; i++) {
+            //         const col = i % cols;
+            //         const row = Math.floor(i / cols);
+            //         const x = col * resolution + resolution/2;
+            //         const y = row * resolution + resolution/2;
+            //         const force = flowField[i];
+            //         
+            //         ctx.beginPath();
+            //         ctx.moveTo(x, y);
+            //         ctx.lineTo(x + force.x * 10, y + force.y * 10);
+            //         ctx.stroke();
+            //     }
+            // }
+        }
+
+        function drawVoronoi() {
+            const params = parameters.voronoi;
+            const w = canvas.width;
+            const h = canvas.height;
+            
+            // Clear background
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Step 1: Draw colored cells
+            const pixelSkip = 2; // Skip pixels for performance
+            for (let x = 0; x < w; x += pixelSkip) {
+                for (let y = 0; y < h; y += pixelSkip) {
+                    let closest = 0;
+                    let minDist = Infinity;
+                    
+                    // Find closest point
+                    for (let i = 0; i < voronoiPoints.length; i++) {
+                        const dx = x - voronoiPoints[i].x;
+                        const dy = y - voronoiPoints[i].y;
+                        const dist = dx * dx + dy * dy; // Squared distance for speed
+                        
+                        if (dist < minDist) {
+                            minDist = dist;
+                            closest = i;
+                        }
+                    }
+                    
+                    // Color based on cell index (normalized to 0-1)
+                    const t = closest / voronoiPoints.length;
+                    const cellColor = lerpColor(colors.primary, colors.secondary, t);
+                    ctx.fillStyle = hexToRgba(cellColor, 0.7);
+                    ctx.fillRect(x, y, pixelSkip, pixelSkip);
+                }
+            }
+            
+            // Step 2: Draw cell edges (boundaries between cells)
+            ctx.strokeStyle = hexToRgba(colors.primary, 0.9);
+            ctx.lineWidth = params.lineWidth.value;
+            
+            // For better edge detection, we'll check pixels with larger steps
+            // and draw lines when neighboring pixels belong to different cells
+            const edgeStep = 4; // Larger step for edge detection
+            const edgeThreshold = 1; // Minimum squared distance to consider as edge
+            
+            for (let x = 0; x < w; x += edgeStep) {
+                for (let y = 0; y < h; y += edgeStep) {
+                    // Find cell for current pixel
+                    let currentCell = -1;
+                    let minDist = Infinity;
+                    
+                    for (let i = 0; i < voronoiPoints.length; i++) {
+                        const dx = x - voronoiPoints[i].x;
+                        const dy = y - voronoiPoints[i].y;
+                        const dist = dx * dx + dy * dy;
+                        
+                        if (dist < minDist) {
+                            minDist = dist;
+                            currentCell = i;
+                        }
+                    }
+                    
+                    // Check right neighbor
+                    if (x + edgeStep < w) {
+                        let rightCell = -1;
+                        minDist = Infinity;
+                        
+                        for (let i = 0; i < voronoiPoints.length; i++) {
+                            const dx = (x + edgeStep) - voronoiPoints[i].x;
+                            const dy = y - voronoiPoints[i].y;
+                            const dist = dx * dx + dy * dy;
+                            
+                            if (dist < minDist) {
+                                minDist = dist;
+                                rightCell = i;
+                            }
+                        }
+                        
+                        // If cells differ, draw vertical edge
+                        if (rightCell !== currentCell) {
+                            ctx.beginPath();
+                            ctx.moveTo(x + edgeStep/2, y);
+                            ctx.lineTo(x + edgeStep/2, y + edgeStep);
+                            ctx.stroke();
+                        }
+                    }
+                    
+                    // Check bottom neighbor
+                    if (y + edgeStep < h) {
+                        let bottomCell = -1;
+                        minDist = Infinity;
+                        
+                        for (let i = 0; i < voronoiPoints.length; i++) {
+                            const dx = x - voronoiPoints[i].x;
+                            const dy = (y + edgeStep) - voronoiPoints[i].y;
+                            const dist = dx * dx + dy * dy;
+                            
+                            if (dist < minDist) {
+                                minDist = dist;
+                                bottomCell = i;
+                            }
+                        }
+                        
+                        // If cells differ, draw horizontal edge
+                        if (bottomCell !== currentCell) {
+                            ctx.beginPath();
+                            ctx.moveTo(x, y + edgeStep/2);
+                            ctx.lineTo(x + edgeStep, y + edgeStep/2);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            // Step 3: Draw points if specified
+            if (params.showPoints) {
+                ctx.fillStyle = hexToRgba(colors.background, 0.8);
+                voronoiPoints.forEach(p => {
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = colors.primary;
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                });
+            }
+        }
+
+        function drawLSystem() {
+            const params = parameters.lsystem;
+            const startX = canvas.width / 2;
+            const startY = canvas.height * 0.8;
+            let x = startX;
+            let y = startY;
+            let angle = -Math.PI / 2;
+            const stepLength = params.stepLength.value;
+            
+            ctx.strokeStyle = colors.primary;
+            ctx.lineWidth = params.lineWidth.value;
+            
+            for (let char of lSystemString) {
+                switch (char) {
+                    case 'F':
+                        const newX = x + Math.cos(angle) * stepLength;
+                        const newY = y + Math.sin(angle) * stepLength;
+                        ctx.beginPath();
+                        ctx.moveTo(x, y);
+                        ctx.lineTo(newX, newY);
+                        ctx.stroke();
+                        x = newX;
+                        y = newY;
+                        break;
+                    case '+':
+                        angle += params.angle.value * Math.PI / 180;
+                        break;
+                    case '-':
+                        angle -= params.angle.value * Math.PI / 180;
+                        break;
+                    case '[':
+                        lSystemTurtleStack.push({x, y, angle});
+                        break;
+                    case ']':
+                        const state = lSystemTurtleStack.pop();
+                        x = state.x;
+                        y = state.y;
+                        angle = state.angle;
+                        break;
+                }
+            }
+        }
+
+        function drawPenrose() {
+            const params = parameters.penrose;
+            
+            // Clear canvas
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.lineWidth = params.lineWidth.value;
+            
+            // Draw each tile
+            for (const tile of penroseTiles) {
+                ctx.beginPath();
+                
+                // Start at the first point
+                ctx.moveTo(tile.points[0].x, tile.points[0].y);
+                
+                // Draw lines to the other points
+                for (let i = 1; i < tile.points.length; i++) {
+                    ctx.lineTo(tile.points[i].x, tile.points[i].y);
+                }
+                
+                // Close the path
+                ctx.closePath();
+                
+                // Fill with color based on tile type
+                if (params.fillTiles.value > 0.5) {
+                    let fillColor;
+                    if (tile.type === 'kite') {
+                        fillColor = colors.primary;
+                    } else { // dart
+                        fillColor = colors.secondary;
+                    }
+                    
+                    // Apply color variation
+                    if (params.colorVariation.value > 0) {
+                        const variation = (Math.random() - 0.5) * params.colorVariation.value;
+                        fillColor = adjustColorBrightness(fillColor, 1 + variation);
+                    }
+                    
+                    ctx.fillStyle = hexToRgba(fillColor, 0.7);
+                    ctx.fill();
+                }
+                
+                // Stroke with slightly transparent color
+                ctx.strokeStyle = hexToRgba(colors.primary, 0.9);
+                ctx.stroke();
+            }
+        }
+
+        // Helper function to adjust color brightness
+        function adjustColorBrightness(hex, factor) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return hex;
+            
+            // Adjust each component
+            const r = Math.max(0, Math.min(255, Math.floor(rgb.r * factor)));
+            const g = Math.max(0, Math.min(255, Math.floor(rgb.g * factor)));
+            const b = Math.max(0, Math.min(255, Math.floor(rgb.b * factor)));
+            
+            // Convert back to hex
+            return `#${(r << 16 | g << 8 | b).toString(16).padStart(6, '0')}`;
+        }
+
+        function drawParticleSystem() {
+            try {
+                const params = parameters.particles;
+                const w = canvas.width;
+                const h = canvas.height;
+
+                // Clear canvas with fade effect
+                ctx.fillStyle = hexToRgba(colors.background, 1 - params.fade.value);
+                ctx.fillRect(0, 0, w, h);
+
+                // Draw particles
+                particles.forEach(p => {
+                    const alpha = p.life / p.maxLife;
+                    ctx.fillStyle = hexToRgba(p.color, alpha * params.opacity.value);
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+
+                // Update particles
+                updateParticles();
+
+            } catch (error) {
+                console.error("Error in drawParticleSystem:", error);
+                // Draw error message with background
+                ctx.fillStyle = colors.background;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = hexToRgba(colors.primary, 0.8);
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Error generating particle system', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function updateFlowField() {
+            const params = parameters.flowfield;
+            const resolution = params.resolution.value;
+            const cols = Math.ceil(canvas.width / resolution);
+            const rows = Math.ceil(canvas.height / resolution);
+            
+            // Update particles in flow field
+            flowParticles.forEach(p => {
+                // Find grid position
+                const col = Math.floor(p.x / resolution);
+                const row = Math.floor(p.y / resolution);
+                const index = row * cols + col;
+                
+                // Apply force if in bounds
+                if (col >= 0 && col < cols && row >= 0 && row < rows && index < flowField.length) {
+                    const force = flowField[index];
+                    p.x += force.x;
+                    p.y += force.y;
+                }
+                
+                // Wrap around edges
+                if (p.x < 0) p.x = canvas.width;
+                if (p.x > canvas.width) p.x = 0;
+                if (p.y < 0) p.y = canvas.height;
+                if (p.y > canvas.height) p.y = 0;
+                
+                // Decrease life and reset if needed
+                p.life--;
+                if (p.life <= 0) {
+                    p.x = Math.random() * canvas.width;
+                    p.y = Math.random() * canvas.height;
+                    p.life = params.particleLife.value;
+                }
+            });
+        }
+
+        // --- Fractal Drawing Function ---
+        function drawFractal() {
+            const params = parameters.fractal;
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Start recursive fractal
+            ctx.strokeStyle = colors.primary;
+            ctx.lineWidth = params.thickness.value;
+            ctx.lineCap = 'round';
+            
+            // Start from bottom center
+            const startX = canvas.width / 2;
+            const startY = canvas.height * 0.8;
+            const angle = -Math.PI / 2; // Start growing upward
+            
+            drawBranch(startX, startY, angle, params.initialSize.value, params.thickness.value, 0);
+            
+            function drawBranch(x, y, angle, length, thickness, depth) {
+                // Base case - stop recursion
+                if (depth >= params.iterations.value || length < 1) return;
+                
+                // Calculate endpoint
+                const endX = x + Math.cos(angle) * length;
+                const endY = y + Math.sin(angle) * length;
+                
+                // Draw branch
+                ctx.lineWidth = Math.max(0.5, thickness);
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(endX, endY);
+                
+                // Color branches differently based on depth
+                const t = depth / params.iterations.value;
+                ctx.strokeStyle = lerpColor(colors.primary, colors.secondary, t);
+                ctx.stroke();
+                
+                // Calculate new parameters for sub-branches
+                const newLength = length * params.branchRatio.value;
+                const newThickness = thickness * 0.7;
+                const newDepth = depth + 1;
+                
+                // Calculate angles for branches with spread factor
+                const angleSpread = params.angle.value * (Math.PI / 180) * params.spread.value;
+                const angle1 = angle - params.angle.value * (Math.PI / 180) + Math.random() * angleSpread;
+                const angle2 = angle + params.angle.value * (Math.PI / 180) - Math.random() * angleSpread;
+                
+                // Draw sub-branches
+                drawBranch(endX, endY, angle1, newLength, newThickness, newDepth);
+                drawBranch(endX, endY, angle2, newLength, newThickness, newDepth);
+            }
+        }
+
+        // --- Algorithm Implementations ---
+
+        // Noise Generation (Simple placeholder - results vary, not true Perlin/Simplex)
+        function SimpleNoise() {
+            // P generator based on example by Ken Perlin
+            const P = new Uint8Array(512);
+            for(let i=0; i<256; ++i) P[i] = i;
+            // Shuffle P
+            for (let i = 255; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [P[i], P[j]] = [P[j], P[i]]; // Swap
+            }
+            // Duplicate P
+            for(let i=0; i<256; ++i) P[i+256] = P[i];
+
+            function fade(t) { return t*t*t*(t*(t*6-15)+10); }
+            function lerp(t, a, b) { return a + t*(b-a); }
+            function grad(hash, x, y, z) { // Added z for potential 3D noise later
+                const h = hash & 15; // Convert low 4 bits of hash code into 12 gradient directions
+                const u = h < 8 ? x : y;
+                const v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+                return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
+            }
+
+            this.noise = function(x, y, z = 0) { // Added z default
+                const X = Math.floor(x) & 255;
+                const Y = Math.floor(y) & 255;
+                const Z = Math.floor(z) & 255;
+                x -= Math.floor(x);
+                y -= Math.floor(y);
+                z -= Math.floor(z);
+                const fx = fade(x);
+                const fy = fade(y);
+                const fz = fade(z);
+
+                const A = P[X]+Y; const AA = P[A]+Z; const AB = P[A+1]+Z;
+                const B = P[X+1]+Y; const BA = P[B]+Z; const BB = P[B+1]+Z;
+
+                const gradAA = grad(P[AA], x, y, z);
+                const gradBA = grad(P[BA], x-1, y, z);
+                const gradAB = grad(P[AB], x, y-1, z);
+                const gradBB = grad(P[BB], x-1, y-1, z);
+                const gradAA1 = grad(P[AA+1], x, y, z-1);
+                const gradBA1 = grad(P[BA+1], x-1, y, z-1);
+                const gradAB1 = grad(P[AB+1], x, y-1, z-1);
+                const gradBB1 = grad(P[BB+1], x-1, y-1, z-1);
+
+
+                const lerp1 = lerp(fx, gradAA, gradBA);
+                const lerp2 = lerp(fx, gradAB, gradBB);
+                const lerp3 = lerp(fy, lerp1, lerp2);
+
+                const lerp4 = lerp(fx, gradAA1, gradBA1);
+                const lerp5 = lerp(fx, gradAB1, gradBB1);
+                const lerp6 = lerp(fy, lerp4, lerp5);
+
+                return lerp(fz, lerp3, lerp6); // Output range roughly -1 to 1
+            }
+        }
+
+        function fbm(x, y, octaves, persistence, lacunarity, scale, generator) {
+            let total = 0;
+            let frequency = scale;
+            let amplitude = 1;
+            let maxValue = 0; // Used for normalizing result to 0.0 - 1.0
+            for (let i = 0; i < octaves; i++) {
+                total += generator.noise(x * frequency, y * frequency) * amplitude;
+                maxValue += amplitude;
+                amplitude *= persistence;
+                frequency *= lacunarity;
+            }
+            // Normalize to approx 0-1 range (input noise is approx -1 to 1)
+            return (total / maxValue + 1) / 2;
+        }
+
+        // Perlin Noise / FBM Drawing
+        function drawPerlinNoise() {
+            try {
+                const params = parameters.perlin;
+                const w = canvas.width;
+                const h = canvas.height;
+
+                // Create ImageData safely
+                let imageData;
+                try {
+                    imageData = ctx.createImageData(w, h);
+                } catch (e) {
+                    console.error("Failed to create ImageData:", e);
+                    throw new Error("Could not create image buffer");
+                }
+
+                const data = imageData.data;
+                const isGrayscale = params.grayscale.value > 0.5;
+                const noiseScale = Math.max(0.001, params.scale.value * 50); // Ensure non-zero scale
+                const detail = Math.max(1, Math.min(8, params.detail.value)); // Clamp detail level
+                const persistence = params.persistence.value;
+                const contrast = params.contrast.value;
+
+                // Pre-calculate some values for optimization
+                const primaryColor = hexToRgb(colors.primary) || {r: 99, g: 102, b: 241}; // Default to indigo if conversion fails
+                const secondaryColor = hexToRgb(colors.secondary) || {r: 236, g: 72, b: 153}; // Default to pink if conversion fails
+
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        // Calculate noise value with multiple octaves (fBm)
+                        let noiseVal = 0;
+                        let amplitude = 1;
+                        let frequency = 1;
+                        let maxValue = 0;
+
+                        for (let i = 0; i < detail; i++) {
+                            noiseVal += amplitude * noiseGenerator.noise(
+                                x * frequency / noiseScale, 
+                                y * frequency / noiseScale
+                            );
+                            maxValue += amplitude;
+                            amplitude *= persistence;
+                            frequency *= 2;
+                        }
+
+                        // Normalize and apply contrast
+                        noiseVal = (noiseVal / maxValue + 1) / 2; // Normalize to 0-1
+                        noiseVal = Math.max(0, Math.min(1, 0.5 + (noiseVal - 0.5) * contrast));
+
+                        const index = (y * w + x) * 4;
+                        
+                        if (isGrayscale) {
+                            // Grayscale mode
+                            const shade = Math.floor(noiseVal * 255);
+                            data[index] = shade;
+                            data[index + 1] = shade;
+                            data[index + 2] = shade;
+                        } else {
+                            // Color mode - interpolate between primary and secondary colors
+                            data[index] = Math.floor(primaryColor.r + (secondaryColor.r - primaryColor.r) * noiseVal);
+                            data[index + 1] = Math.floor(primaryColor.g + (secondaryColor.g - primaryColor.g) * noiseVal);
+                            data[index + 2] = Math.floor(primaryColor.b + (secondaryColor.b - primaryColor.b) * noiseVal);
+                        }
+                        data[index + 3] = 255; // Full alpha
+                    }
+                }
+
+                // Put the image data to canvas
+                try {
+                    ctx.putImageData(imageData, 0, 0);
+                } catch (e) {
+                    console.error("Failed to put image data:", e);
+                    throw new Error("Could not render noise pattern");
+                }
+
+            } catch (error) {
+                console.error("Error in drawPerlinNoise:", error);
+                // Draw error message with background
+                ctx.fillStyle = colors.background;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = hexToRgba(colors.primary, 0.8);
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Error generating noise pattern', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function drawFBM() {
+            try {
+                const params = parameters.fbm;
+                const w = canvas.width;
+                const h = canvas.height;
+
+                // Clear background first
+                ctx.fillStyle = colors.background;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Create ImageData for pixel manipulation
+                let imageData;
+                try {
+                    imageData = ctx.createImageData(w, h);
+                } catch (e) {
+                    console.error("Failed to create ImageData:", e);
+                    throw new Error("Could not create image buffer");
+                }
+
+                const data = imageData.data;
+                const baseScale = Math.max(0.001, params.scale.value); // Use scale directly for more intuitive control
+                const octaves = Math.max(1, Math.min(10, params.octaves.value));
+                const persistence = params.persistence.value;
+                const lacunarity = params.lacunarity.value;
+                const intensity = params.intensity.value;
+                const colorMix = params.colorMix.value;
+
+                // Pre-calculate colors for better performance
+                const primaryRGB = hexToRgb(colors.primary);
+                const secondaryRGB = hexToRgb(colors.secondary);
+                const backgroundRGB = hexToRgb(colors.background);
+                
+                if (!primaryRGB || !secondaryRGB || !backgroundRGB) {
+                    throw new Error("Invalid color values");
+                }
+
+                // Option to use domain warping for more interesting patterns
+                const useWarping = true;
+
+                // Find min/max for normalization
+                let min = Infinity;
+                let max = -Infinity;
+                const noiseValues = new Array(w * h);
+
+                // First pass - calculate all noise values
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        let nx = x / w;
+                        let ny = y / h;
+                        
+                        // Apply domain warping if enabled
+                        if (useWarping) {
+                            const warpStrength = 0.08;
+                            const warpScale = baseScale * 2;
+                            
+                            // Warp the input coordinates based on noise
+                            const warpX = noiseGenerator.noise(nx * warpScale, ny * warpScale) * warpStrength;
+                            const warpY = noiseGenerator.noise(nx * warpScale + 100, ny * warpScale + 100) * warpStrength;
+                            
+                            nx += warpX;
+                            ny += warpY;
+                        }
+                        
+                        // Apply FBM
+                        let noiseVal = 0;
+                        let amplitude = 1;
+                        let frequency = baseScale;
+                        let maxAmp = 0;
+
+                        for (let i = 0; i < octaves; i++) {
+                            // Add noise layer
+                            noiseVal += amplitude * noiseGenerator.noise(nx * frequency, ny * frequency);
+                            
+                            // Update parameters for next layer
+                            maxAmp += amplitude;
+                            amplitude *= persistence;
+                            frequency *= lacunarity;
+                        }
+
+                        // Normalize
+                        noiseVal /= maxAmp;
+                        
+                        // Store value
+                        const idx = y * w + x;
+                        noiseValues[idx] = noiseVal;
+                        
+                        // Update min/max for normalization
+                        if (noiseVal < min) min = noiseVal;
+                        if (noiseVal > max) max = noiseVal;
+                    }
+                }
+
+                // Second pass - assign colors with full normalization
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        const idx = y * w + x;
+                        
+                        // Normalize noise to 0-1 using observed min/max
+                        let normalizedNoise = (noiseValues[idx] - min) / (max - min);
+                        
+                        // Apply intensity adjustment
+                        normalizedNoise = Math.pow(normalizedNoise, 1 / intensity);
+                        
+                        // Color mapping with smooth transitions
+                        let r, g, b;
+                        
+                        // Use a more advanced color mapping scheme
+                        if (normalizedNoise < 0.33) {
+                            // Map lower third between background and primary
+                            const t = normalizedNoise / 0.33;
+                            r = backgroundRGB.r + (primaryRGB.r - backgroundRGB.r) * t;
+                            g = backgroundRGB.g + (primaryRGB.g - backgroundRGB.g) * t;
+                            b = backgroundRGB.b + (primaryRGB.b - backgroundRGB.b) * t;
+                        } else if (normalizedNoise < 0.66) {
+                            // Map middle third between primary and secondary
+                            const t = (normalizedNoise - 0.33) / 0.33;
+                            r = primaryRGB.r + (secondaryRGB.r - primaryRGB.r) * t;
+                            g = primaryRGB.g + (secondaryRGB.g - primaryRGB.g) * t;
+                            b = primaryRGB.b + (secondaryRGB.b - primaryRGB.b) * t;
+                        } else {
+                            // Map upper third to brighter version of secondary
+                            const t = (normalizedNoise - 0.66) / 0.34;
+                            r = secondaryRGB.r + (255 - secondaryRGB.r) * t;
+                            g = secondaryRGB.g + (255 - secondaryRGB.g) * t;
+                            b = secondaryRGB.b + (255 - secondaryRGB.b) * t;
+                        }
+                        
+                        // Set pixel data
+                        const pixelIdx = (y * w + x) * 4;
+                        data[pixelIdx] = Math.floor(r);
+                        data[pixelIdx + 1] = Math.floor(g);
+                        data[pixelIdx + 2] = Math.floor(b);
+                        data[pixelIdx + 3] = 255; // Full alpha
+                    }
+                }
+
+                // Put the image data to canvas
+                try {
+                    ctx.putImageData(imageData, 0, 0);
+                } catch (e) {
+                    console.error("Failed to put image data:", e);
+                    throw new Error("Could not render FBM pattern");
+                }
+
+                // Add a slight glow effect by drawing a second layer with blur
+                ctx.save();
+                ctx.filter = 'blur(30px)';
+                ctx.globalAlpha = 0.3;
+                ctx.drawImage(canvas, 0, 0);
+                ctx.restore();
+
+            } catch (error) {
+                console.error("Error in drawFBM:", error);
+                // Draw error message with background
+                ctx.fillStyle = colors.background;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = hexToRgba(colors.primary, 0.8);
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Error generating FBM pattern: ' + error.message, canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        // Wave Patterns (Original Implementation - Robust)
+         function updateWaves() {
+             waveTime += parameters.waves.speed.value * 0.02; // Adjust speed multiplier
+         }
+
+        function drawWaves() {
+            const params = parameters.waves;
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const density = Math.max(4, Math.floor(params.density.value)); // Ensure at least a few points
+            const stepX = canvas.width / (density -1); // Correct step calculation
+
+            for (let layer = params.layers.value - 1; layer >= 0; layer--) { // Draw back to front
+                const layerProgress = (params.layers.value > 1) ? layer / (params.layers.value - 1) : 0;
+                const layerOffset = layerProgress * canvas.height * 0.2; // Reduced vertical stagger
+                const layerFreq = params.frequency.value * (1 + layer * 0.2);
+                const layerAmp = params.amplitude.value * (1 - layerProgress * 0.6); // Decrease amp more for back layers
+                const layerTurb = params.turbulence.value; // Turbulence strength
+                const layerSpeed = waveTime * (1 + layer * 0.1); // Vary speed per layer
+                const centerY = canvas.height * 0.45 + layerOffset; // Base Y position, slightly lower
+
+                const waveColor = lerpColor(colors.primary, colors.secondary, layerProgress);
+
+                ctx.beginPath();
+                ctx.moveTo(0, canvas.height); // Start from bottom left
+
+                // Calculate all points first for potential smoothing or stroke later
+                 const points = [];
+                 for (let i = 0; i < density; i++) {
+                     const x = i * stepX;
+                     // Use noise for turbulence, scale input properly
+                     const noiseX = x * 0.005 * (1 + layer * 0.1); // Vary noise scale per layer
+                     const noiseY = layer + layerSpeed * 0.1;
+                     const noiseVal = noiseGenerator.noise(noiseX, noiseY) * layerTurb;
+                     const y = centerY + Math.sin(x * layerFreq + layerSpeed) * layerAmp + noiseVal * layerAmp * 0.5;
+                     points.push({x, y});
+                     ctx.lineTo(x, y); // Add point to fill path
+                 }
+
+                ctx.lineTo(canvas.width, canvas.height); // End at bottom right
+                ctx.closePath();
+
+                // Fill with gradient (slightly transparent)
+                const gradient = ctx.createLinearGradient(0, centerY - layerAmp, 0, canvas.height);
+                gradient.addColorStop(0, hexToRgba(waveColor, 0.5));
+                gradient.addColorStop(1, hexToRgba(waveColor, 0.0));
+                ctx.fillStyle = gradient;
+                ctx.fill();
+
+                // Draw outline highlight for the wave edge
+                ctx.beginPath();
+                 ctx.moveTo(points[0].x, points[0].y);
+                 for (let i = 1; i < points.length; i++) {
+                      ctx.lineTo(points[i].x, points[i].y);
+                 }
+                 ctx.strokeStyle = hexToRgba(waveColor, 0.7);
+                 ctx.lineWidth = 1.5;
+                 ctx.stroke();
+            }
+        }
+
+
+        // Truchet Tiles (Original Implementation - Robust)
+        function drawTruchet() {
+            const params = parameters.truchet;
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const tileSize = Math.max(5, params.tileSize.value);
+            const pattern = Math.floor(params.pattern.value);
+            const randomness = params.randomness.value;
+            const lineWidth = params.lineWidth.value;
+            const curveRadiusFactor = params.curveRadius.value;
+            const colorVariation = params.colorVariation.value;
+
+            const cols = Math.ceil(canvas.width / tileSize);
+            const rows = Math.ceil(canvas.height / tileSize);
+
+            for (let y = 0; y < rows; y++) {
+                for (let x = 0; x < cols; x++) {
+                    // Determine tile orientation/type
+                    const tileType = Math.random() < randomness ? Math.floor(Math.random() * 2) : (x + y) % 2; // Simplified to 2 types for common patterns
+
+                    const posX = x * tileSize;
+                    const posY = y * tileSize;
+
+                    // Color based on position + variation
+                    const t = ((x / cols) + (y / rows)) / 2; // Position gradient 0-1
+                    const baseColor = lerpColor(colors.primary, colors.secondary, t);
+                    const randomFactor = Math.random();
+                    const tileColor = lerpColor(baseColor, randomFactor > 0.5 ? colors.primary : colors.secondary, randomFactor * colorVariation);
+
+                    // Call the drawing function for the specific tile
+                    drawSingleTruchetTile(posX, posY, tileSize, tileType, pattern, tileColor, lineWidth, curveRadiusFactor);
+                }
+            }
+        }
+
+        // Refactored to draw a single tile based on type and pattern
+        function drawSingleTruchetTile(x, y, size, type, patternType, color, lineWidth, curveRadiusFactor) {
+            ctx.lineWidth = lineWidth;
+            ctx.strokeStyle = color;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            const halfSize = size / 2;
+            // Radius interpretation: 0 = sharp corners, 1 = full quarter circle radius
+            const radius = halfSize * curveRadiusFactor;
+
+            ctx.save();
+            ctx.translate(x + halfSize, y + halfSize); // Move origin to tile center
+
+            ctx.beginPath();
+
+            // Pattern definitions based on type (0 or 1) and patternType (0-3)
+            // Type 0 usually connects top-left to bottom-right features
+            // Type 1 usually connects top-right to bottom-left features
+            if (patternType === 0) { // Classic Quarter Circles
+                if (type === 0) { // Connect TL to BR corners
+                    ctx.arc(-halfSize, -halfSize, radius, 0, Math.PI / 2); // TL corner arc inward
+                    ctx.moveTo(halfSize - radius, halfSize); // Move to start of BR arc
+                    ctx.arc(halfSize, halfSize, radius, Math.PI, 3 * Math.PI / 2); // BR corner arc inward
+                } else { // Connect TR to BL corners
+                    ctx.arc(halfSize, -halfSize, radius, Math.PI / 2, Math.PI); // TR corner arc inward
+                     ctx.moveTo(-halfSize + radius, halfSize); // Move to start of BL arc
+                    ctx.arc(-halfSize, halfSize, radius, 3 * Math.PI / 2, 2 * Math.PI); // BL corner arc inward
+                }
+            } else if (patternType === 1) { // Diagonal Lines
+                 if (type === 0) { // TL to BR line
+                     ctx.moveTo(-halfSize, -halfSize);
+                     ctx.lineTo(halfSize, halfSize);
+                 } else { // TR to BL line
+                     ctx.moveTo(halfSize, -halfSize);
+                     ctx.lineTo(-halfSize, halfSize);
+                 }
+            } else if (patternType === 2) { // Alternative Arcs ('S' shape)
+                 if (type === 0) { // Arc BL outward, Arc TR outward
+                      ctx.arc(-halfSize, halfSize, radius, -Math.PI / 2, 0);
+                      ctx.moveTo(halfSize - radius, -halfSize);
+                      ctx.arc(halfSize, -halfSize, radius, Math.PI, 3*Math.PI/2);
+                 } else { // Arc TL outward, Arc BR outward
+                      ctx.arc(-halfSize, -halfSize, radius, Math.PI / 2, Math.PI);
+                      ctx.moveTo(halfSize, halfSize-radius);
+                      ctx.arc(halfSize, halfSize, radius, 3*Math.PI/2, 2*Math.PI);
+                 }
+            } else if (patternType === 3) { // Straight Mid-lines
+                 if (type === 0) { // Horizontal line
+                     ctx.moveTo(-halfSize, 0);
+                     ctx.lineTo(halfSize, 0);
+                 } else { // Vertical line
+                     ctx.moveTo(0, -halfSize);
+                     ctx.lineTo(0, halfSize);
+                 }
+            }
+
+            ctx.stroke();
+            ctx.restore(); // Restore context state
+        }
+
+
+        // --- Utility Functions ---
+        function lerpColor(hex1, hex2, amount) {
+            const c1 = hexToRgb(hex1);
+            const c2 = hexToRgb(hex2);
+             if (!c1 || !c2) return '#808080'; // Return gray if colors invalid
+
+             // Clamp amount to 0-1 range
+              amount = Math.max(0, Math.min(1, amount));
+
+            const r = Math.round(c1.r + (c2.r - c1.r) * amount);
+            const g = Math.round(c1.g + (c2.g - c1.g) * amount);
+            const b = Math.round(c1.b + (c2.b - c1.b) * amount);
+
+             // Clamp values (already clamped by round, but safe)
+             const clamp = (val) => Math.max(0, Math.min(255, val));
+
+             return `rgb(${clamp(r)}, ${clamp(g)}, ${clamp(b)})`;
+        }
+
+        function hexToRgb(hex) {
+             if (!hex || typeof hex !== 'string') return null;
+             hex = hex.startsWith('#') ? hex.slice(1) : hex;
+             if (hex.length === 3) {
+                 hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+             }
+             if (hex.length !== 6) return null;
+             const r = parseInt(hex.substring(0, 2), 16);
+             const g = parseInt(hex.substring(2, 4), 16);
+             const b = parseInt(hex.substring(4, 6), 16);
+             if (isNaN(r) || isNaN(g) || isNaN(b)) return null;
+             return { r, g, b };
+        }
+
+        function hexToRgba(hex, alpha) {
+            const rgb = hexToRgb(hex);
+            if (!rgb) return `rgba(128, 128, 128, ${alpha})`; // Gray fallback
+             // Clamp alpha
+             alpha = Math.max(0, Math.min(1, alpha));
+            return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${alpha})`;
+        }
+
+        // Particle System Functions
+        function initParticles() {
+            const params = parameters.particles;
+            const numParticles = params.count.value;
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Initialize particles array
+            particles = Array.from({ length: numParticles }, () => ({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                vx: (Math.random() - 0.5) * params.speed.value,
+                vy: (Math.random() - 0.5) * params.speed.value,
+                size: Math.random() * params.size.value + 1,
+                life: Math.random() * params.life.value,
+                maxLife: params.life.value,
+                color: Math.random() > 0.5 ? colors.primary : colors.secondary
+            }));
+        }
+
+        function updateParticles() {
+            const params = parameters.particles;
+            const w = canvas.width;
+            const h = canvas.height;
+
+            particles.forEach(p => {
+                // Update position
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Bounce off walls
+                if (p.x < 0 || p.x > w) p.vx *= -1;
+                if (p.y < 0 || p.y > h) p.vy *= -1;
+
+                // Update life
+                p.life -= 1;
+
+                // Reset particle if it's dead
+                if (p.life <= 0) {
+                    p.x = Math.random() * w;
+                    p.y = Math.random() * h;
+                    p.vx = (Math.random() - 0.5) * params.speed.value;
+                    p.vy = (Math.random() - 0.5) * params.speed.value;
+                    p.life = p.maxLife;
+                    p.color = Math.random() > 0.5 ? colors.primary : colors.secondary;
+                }
+            });
+        }
+
+        // Start the application
+        window.addEventListener('load', init);
+
+    </script>
+</body>
+</html>
