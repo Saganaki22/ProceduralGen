@@ -7,7 +7,8 @@
 
 An interactive web application for creating beautiful algorithmic artwork through various procedural generation algorithms.
 
-![Procedural Art Generator Preview](https://i.ibb.co/F41ngw3F/progen.jpg)
+![progen](https://github.com/user-attachments/assets/37074aac-d68b-411c-b11f-fffd5340ed9a)
+
 
 ## Overview
 
