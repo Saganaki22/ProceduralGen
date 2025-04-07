@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Procedural Art Generator</title>
+    <!-- Meta Description -->
+    <meta name="description" content="Learn about the algorithms behind the Procedural Art Generator. Discover how each technique creates unique generative artwork from mathematical patterns.">
+    <!-- Favicon Links -->
+    <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+    <link rel="manifest" href="favicon/webmanifest.json">
+    <link rel="shortcut icon" href="favicon/favicon.ico">
+    <!-- Open Graph Meta Tags (for social sharing) -->
+    <meta property="og:title" content="About Procedural Art Generator">
+    <meta property="og:description" content="Learn about the algorithms behind the Procedural Art Generator. Discover how each technique creates unique generative artwork from mathematical patterns.">
+    <meta property="og:image" content="https://i.ibb.co/F41ngw3F/progen.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://drbaph.is-a.dev/ProceduralGen/about.html">
+    <!-- Twitter Card (for better previews on Twitter) -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="About Procedural Art Generator">
+    <meta name="twitter:description" content="Learn about the algorithms behind the Procedural Art Generator. Discover how each technique creates unique generative artwork from mathematical patterns.">
+    <meta name="twitter:image" content="https://i.ibb.co/F41ngw3F/progen.jpg">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #ec4899;
+            --accent: #8b5cf6;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --mid: #94a3b8;
+            --radius: 12px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+        }
+
+        html, body {
+            min-height: 100%;
+        }
+
+        body {
+            background-color: var(--dark);
+            color: var(--light);
+            line-height: 1.6;
+        }
+
+        .gradient-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            position: relative;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        header h1, header p {
+            display: none;
+        }
+
+        .nav-buttons {
+            position: static;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .nav-button {
+            padding: 8px 15px;
+            border-radius: var(--radius);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--light);
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+        
+        .nav-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        .nav-button svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        section {
+            margin-bottom: 40px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--light);
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            display: inline-block;
+        }
+
+        .algorithm-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .algorithm-card {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.3s ease;
+        }
+
+        .algorithm-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .algorithm-image {
+            width: 100%;
+            height: 250px;
+            background-color: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            color: var(--mid);
+        }
+
+        .algorithm-content {
+            padding: 20px;
+        }
+
+        .algorithm-content h3 {
+            font-size: 1.4rem;
+            margin-bottom: 10px;
+            color: var(--light);
+        }
+
+        .algorithm-content p {
+            margin-bottom: 15px;
+            color: var(--mid);
+        }
+
+        .algorithm-content .reference {
+            font-size: 0.9rem;
+            font-style: italic;
+            color: var(--mid);
+            opacity: 0.8;
+        }
+
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: var(--mid);
+            font-size: 0.9rem;
+            margin-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .algorithm-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .nav-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            section {
+                margin-bottom: 30px;
+            }
+            
+            h2 {
+                font-size: 1.5rem;
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (max-width: 500px) {
+            .algorithm-card {
+                margin-bottom: 10px;
+            }
+            
+            .algorithm-image {
+                height: 150px;
+                font-size: 1rem;
+            }
+            
+            .algorithm-content {
+                padding: 15px;
+            }
+            
+            .algorithm-content h3 {
+                font-size: 1.2rem;
+                margin-bottom: 8px;
+            }
+            
+            .algorithm-content p {
+                font-size: 0.9rem;
+                margin-bottom: 10px;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .algorithm-grid {
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="gradient-background"></div>
+    <div class="container">
+        <header>
+            <div class="nav-buttons">
+                <a href="Procedural.html" class="nav-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                        <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                    </svg>
+                    Back to Generator
+                </a>
+                <a href="https://github.com/Saganaki22/ProceduralGen" target="_blank" class="nav-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+                    </svg>
+                    GitHub
+                </a>
+            </div>
+        </header>
+
+        <section>
+            <h2>About the Project</h2>
+            <p>
+                The Procedural Art Generator is an interactive web application that lets you explore and create beautiful mathematical artwork through various procedural generation algorithms. Each algorithm represents different approaches to computer-generated art, from simple particle systems to complex mathematical models like fractals, Voronoi diagrams, and chaotic attractors.
+            </p>
+            <p>
+                This project was created to showcase the beauty of algorithmic art and provide an accessible way for anyone to experiment with these fascinating mathematical patterns without requiring programming knowledge.
+            </p>
+        </section>
+
+        <section>
+            <h2>The Algorithms</h2>
+            <div class="algorithm-grid">
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-particles-1744039174291.png" alt="Particle System Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Particle System</h3>
+                        <p>
+                            Particle systems simulate the behavior of numerous small particles that follow physical rules. Introduced in the early 1980s by William Reeves at Lucasfilm for the "Genesis Effect" in Star Trek II: The Wrath of Khan, particle systems have become foundational to computer graphics and generative art.
+                        </p>
+                        <p>
+                            Each particle has properties like position, velocity, size, and lifespan. By simulating thousands of these particles simultaneously, complex emergent patterns can form, creating visually stunning effects like fire, smoke, water, and abstract artistic patterns.
+                        </p>
+                        <p class="reference">
+                            Reeves, W. T. (1983). Particle Systems—A Technique for Modeling a Class of Fuzzy Objects. ACM Transactions on Graphics
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-fractal-1744041917090.png" alt="Recursive Fractal Pattern" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Recursive Patterns (Fractals)</h3>
+                        <p>
+                            Fractals are infinitely complex patterns that are self-similar across different scales. They are created by repeating a simple process over and over in an ongoing feedback loop. Fractals were popularized by mathematician Benoit Mandelbrot in the 1970s.
+                        </p>
+                        <p>
+                            Our implementation uses recursive branching patterns inspired by L-systems (developed by botanist Aristid Lindenmayer in 1968) to create tree-like structures where each branch subdivides into smaller branches, creating complex organic shapes that mimic natural forms like trees, ferns, and coral.
+                        </p>
+                        <p class="reference">
+                            Mandelbrot, B. B. (1982). The Fractal Geometry of Nature
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-flowfield-1744041938096.png" alt="Flow Field Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Flow Field</h3>
+                        <p>
+                            Flow fields (also known as vector fields) represent directional forces across a space. Popularized in generative art by artists like Robert Hodgin and creative coders like Daniel Shiffman, flow fields create mesmerizing flowing patterns.
+                        </p>
+                        <p>
+                            Our implementation uses Perlin noise to generate smooth, natural-looking vector fields. Particles then traverse these fields, creating flowing lines that reveal the underlying structure of the field. This technique produces organic, river-like patterns that suggest natural flowing systems like water currents, wind patterns, or magnetic fields.
+                        </p>
+                        <p class="reference">
+                            Shiffman, D. (2012). The Nature of Code: Simulating Natural Systems with Processing
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-voronoi-1744041945508.png" alt="Voronoi Diagram Pattern" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Voronoi Diagram</h3>
+                        <p>
+                            Voronoi diagrams partition space into regions based on distance to a specified set of points. Named after mathematician Georgy Voronoi who formalized them in 1908, these diagrams occur naturally in many contexts, from cell structures to animal territories.
+                        </p>
+                        <p>
+                            In our implementation, seed points are distributed across the canvas, and each pixel is colored based on which seed point it's closest to. The boundaries between these regions form the characteristic cell-like pattern. Voronoi diagrams can be found throughout nature – from the patterns on a giraffe's coat to the structure of cells in living tissue.
+                        </p>
+                        <p class="reference">
+                            Aurenhammer, F. (1991). Voronoi diagrams—a survey of a fundamental geometric data structure
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-waves-1744041950319.png" alt="Wave Pattern Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Wave Patterns</h3>
+                        <p>
+                            Wave patterns simulate various wave phenomena found in physics, including water waves, sound waves, and electromagnetic waves. Wave mathematics has been studied since ancient times, with modern wave equations formalized by d'Alembert, Euler, and others in the 18th century.
+                        </p>
+                        <p>
+                            Our implementation combines sine waves of different frequencies, amplitudes, and phases to create complex wave interference patterns. The algorithm can produce a wide range of effects from calm, regular waves to turbulent, chaotic patterns reminiscent of ocean surfaces or sound visualizations.
+                        </p>
+                        <p class="reference">
+                            Strogatz, S. H. (1994). Nonlinear Dynamics and Chaos: With Applications to Physics, Biology, Chemistry, and Engineering
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-truchet-1744041955955.png" alt="Truchet Tiles Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Truchet Tiles</h3>
+                        <p>
+                            Truchet tiles are a set of decorative patterns created by placing specific designs on square tiles and arranging them on a grid. Named after Sébastien Truchet, a French Dominican priest who studied these patterns in the early 18th century.
+                        </p>
+                        <p>
+                            Our implementation creates patterns by placing tiles that contain simple geometric elements (like quarter circles or diagonal lines) and rotating them randomly. Despite the simplicity of the individual tiles, complex global patterns emerge when they're combined. This demonstrates how complex, interesting designs can arise from very simple local rules.
+                        </p>
+                        <p class="reference">
+                            Smith, C. S. (1987). The tiling patterns of Sebastien Truchet and the topology of structural hierarchy
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="algorithm-grid">
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-perlin-1744041965688.png" alt="Perlin Noise Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Perlin Noise</h3>
+                        <p>
+                            Perlin Noise is a type of gradient noise developed by Ken Perlin in 1983 while working on visual effects for the film "Tron." He later received an Academy Award for this work. Unlike random noise, Perlin noise creates smooth, natural-looking variations.
+                        </p>
+                        <p>
+                            Our implementation visualizes Perlin noise directly as a gradient field, where each pixel's color is determined by the noise value at that position. This creates organic, cloud-like patterns that can be used to simulate natural textures like terrain, clouds, marble, fire, and water. Perlin noise is foundational to procedural texture generation in computer graphics.
+                        </p>
+                        <p class="reference">
+                            Perlin, K. (1985). An image synthesizer. ACM SIGGRAPH Computer Graphics
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-fbm-1744041975918.png" alt="Fractal Brownian Motion Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Fractal Brownian Motion (fBm)</h3>
+                        <p>
+                            Fractal Brownian Motion (fBm) extends Perlin noise by combining multiple layers (octaves) of noise at different frequencies and amplitudes. The concept was formalized in the context of computer graphics by Mandelbrot and Van Ness in 1968, building on work by mathematician Norbert Wiener.
+                        </p>
+                        <p>
+                            Our implementation layers multiple Perlin noise functions with progressively higher frequencies and lower amplitudes. This creates rich, detailed patterns with both large-scale structure and fine details. fBm is especially useful for creating realistic terrain, clouds, and other natural phenomena that exhibit self-similarity across different scales.
+                        </p>
+                        <p class="reference">
+                            Mandelbrot, B. B., & Van Ness, J. W. (1968). Fractional Brownian motions, fractional noises and applications
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-lsystem-1744042006220.png" alt="L-System Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>L-System</h3>
+                        <p>
+                            Lindenmayer systems (L-systems) are a type of formal grammar used to model the growth processes of plant development. They were introduced by Hungarian biologist Aristid Lindenmayer in 1968 as a mathematical theory of plant development.
+                        </p>
+                        <p>
+                            Our implementation uses L-systems to generate fractal-like structures by repeatedly applying rewriting rules to an initial string (axiom), then interpreting the resulting string as drawing commands for a turtle graphics system. This can create complex branching structures like plants, trees, and other organic forms, as well as abstract fractals like the Sierpinski triangle and Koch curve.
+                        </p>
+                        <p class="reference">
+                            Prusinkiewicz, P., & Lindenmayer, A. (1990). The Algorithmic Beauty of Plants
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-reactionDiffusion-1744034544308 (2).png" alt="Reaction-Diffusion Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Reaction-Diffusion</h3>
+                        <p>
+                            Reaction-diffusion systems are mathematical models that describe how the concentration of one or more substances distributed in space changes under the influence of two processes: local chemical reactions and diffusion. Pioneered by Alan Turing in 1952 in his paper "The Chemical Basis of Morphogenesis."
+                        </p>
+                        <p>
+                            Our implementation uses the Gray-Scott model, which simulates the interaction between two virtual chemicals. Through the processes of reaction and diffusion, complex patterns emerge over time, including spots, stripes, waves, and maze-like structures. These patterns are remarkably similar to those found in nature, such as animal coat patterns, fingerprints, and coral formations.
+                        </p>
+                        <p class="reference">
+                            Turing, A. M. (1952). The Chemical Basis of Morphogenesis. Philosophical Transactions of the Royal Society B
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-penrose-1744042020018.png" alt="Penrose Tiling Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Penrose Tiling</h3>
+                        <p>
+                            Penrose tilings are non-periodic tilings discovered by mathematician and physicist Roger Penrose in the 1970s. Unlike regular tilings, Penrose tilings never repeat exactly, yet exhibit stunning fivefold rotational symmetry.
+                        </p>
+                        <p>
+                            Our implementation uses the kite and dart version of Penrose tiling, where two different rhombus shapes are arranged according to specific matching rules. The resulting patterns have fascinating mathematical properties: they are aperiodic (never repeating), self-similar (containing copies of themselves at smaller scales), and have the golden ratio embedded throughout their structure.
+                        </p>
+                        <p class="reference">
+                            Penrose, R. (1974). The role of aesthetics in pure and applied mathematical research
+                        </p>
+                    </div>
+                </div>
+
+                <div class="algorithm-card">
+                    <div class="algorithm-image">
+                        <img src="Public/img/procedural-art-lorenz-1744042082294.png" alt="Lorenz Attractor Visualization" style="width: 100%; height: 100%; object-fit: cover;">
+                    </div>
+                    <div class="algorithm-content">
+                        <h3>Lorenz Attractor</h3>
+                        <p>
+                            The Lorenz attractor is a set of chaotic solutions to the Lorenz system of ordinary differential equations. First studied by Edward Lorenz in 1963, it is one of the most famous examples of chaos theory and the "butterfly effect" – the idea that small changes in initial conditions can lead to vastly different outcomes.
+                        </p>
+                        <p>
+                            Our implementation numerically solves the Lorenz differential equations and visualizes the resulting trajectory. The characteristic butterfly-shaped attractor emerges from this seemingly simple system. Despite being deterministic, the system is highly sensitive to initial conditions, demonstrating the fundamental unpredictability of chaotic systems.
+                        </p>
+                        <p class="reference">
+                            Lorenz, E. N. (1963). Deterministic nonperiodic flow. Journal of the Atmospheric Sciences
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>Procedural Art Generator &copy; 2025 | Created with ❤️ for generative art</p>
+        </footer>
+    </div>
+</body>
+</html>
